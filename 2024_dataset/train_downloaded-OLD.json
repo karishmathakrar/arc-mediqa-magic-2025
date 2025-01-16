@@ -1,0 +1,191 @@
+[
+    {
+        "encounter_id": "11mk4th",
+        "image_ids": [
+            "11mk4th"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "Most probably it is a case of Milia. A milium is a small cyst containing keratin (the skin protein). Milia do not need to be treated unless they are a cause for concern for the patient. They often clear up by themselves within a few months. Where possible, further trauma should be minimized to reduce the development of new lesions. The lesion may be de-roofed using a sterile needle or blade and the contents squeezed or pricked out.\nThey may be destroyed using diathermy and curettage, or cryotherapy.",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "M21 Bump? has persisted for over a year now even after an attempt to puncture it. It is painless.Does anyone know what it is?",
+        "query_content_en": "[deleted]"
+    },
+    {
+        "encounter_id": "125gfgg",
+        "image_ids": [
+            "125gfgg"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "Most probably this is a case of blind pimple. Blind pimples are pimples (zits) that form under your skin. They may stay under your skin’s surface, causing pain and inflammation. Or they may erupt through the surface in the form of a whitehead, blackhead, or red bump. Treatment includes warm compresses and acne-fighting creams containing salicylic acid. Use topical creams and gels like antibiotic cream and retinoid cream. Keep your skin clean to reduce the chance of getting a blind pimple.",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "Maybe a pimple under the skin",
+        "query_content_en": "[deleted]"
+    },
+    {
+        "encounter_id": "ih99w9",
+        "image_ids": [
+            "ih99w9"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "Most probably it is a case of inflamed pimple, may be due to folliculitis or acne. As it's beginning to disappear you can just wait and follow up if further changes occur. You can also try topical steroid cream for a few days if still inflamed.",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "I had this mole that appeared under my eye about 4-5 days ago, and now it’s starting to disappear. The picture I’m showing was taken Friday, I would show you what the “mole” looks like right now but honestly I don’t know how to show two pictures on reddit.",
+        "query_content_en": ""
+    },
+    {
+        "encounter_id": "11n62qx",
+        "image_ids": [
+            "11n62qx"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "Most probably it is a case of solar lentigo, a harmless condition that happens on prolonged sun exposure. Examination using dermatoscopy can clarify the diagnosis. Use topical moisturizer containing aloe vera, and use creams containing licorice extract and vitamin C. There are many topical creams available over the counter that you can apply at home to remove sunspots. Look for creams containing glycolic acid, hydroxy acid, or kojic acid. Taking a vitamin E supplement offers protection against sun damage and can improve your skin’s health, especially when taken together with vitamin C. Use high SPF sunscreen to avoid sun damage.",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "Spot in my hairline",
+        "query_content_en": ""
+    },
+    {
+        "encounter_id": "vk578x",
+        "image_ids": [
+            "vk578x"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "Most propably it is a case of a cyst in the groin area. Cysts are non-cancerous lumps that can cause discomfort or pain, especially when they grow in size. It is important not to squeeze or pop a cyst as this can cause infection. Similarly, if a cyst bursts under your skin, it can cause the surrounding tissue to become infected. There are hundreds of different types of cysts that form for many different reasons, such as infections or blockages in ducts. You should consult your dermatologist for surgical excision.",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "Can someone help me ID this random bump? Today I noticed that I have this bump in my groin area. It’s not painful, very smooth to the touch and squishy, as if there’s some kind of fluid inside (but I can’t pop it nor do I want to). I’m a 30 yo female.",
+        "query_content_en": ""
+    },
+    {
+        "encounter_id": "zmsedx",
+        "image_ids": [
+            "zmsedx"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "This is a case of contact eczema most probably due to contact with an irritant. It’s a common condition that isn’t contagious. Symptoms of eczema can flare up if you contact an irritant or an allergen. Use gentle or sensitive skin moisturizers throughout the day when you have dry skin. Apply moisturizer when your skin is damp after a bath or shower. Apply topical medications to your skin like topical hydrocortisone cream. Take oral medications like anti inflammatory medicines, antihistamines, or corticosteroids to reduce itchiness and swelling. Choose skin care moisturizers that are hypoallergenic, fragrance- and dye-free, gentle or for sensitive skin, contain petroleum jelly or mineral oil, don’t include preservatives or stabilizers, and have lipids and ceramides to improve your skin’s barrier. Avoid irritants and allergens.",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "Random ring of blister appeared overnight - no burn scald or chemicals. Doesn’t itch. Barely hurts. What is it?",
+        "query_content_en": "[deleted]"
+    },
+    {
+        "encounter_id": "123bko0",
+        "image_ids": [
+            "123bko0"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "It is a case of common wart. This noncancerous growth appears when your skin is infected with one of the many viruses of the human papillomavirus (HPV) family. If you cut or damage your skin in some way, it's easier for the virus to take hold. That's why people with chronic skin conditions, such as eczema, or who bite their nails or pick at hangnails are prone to getting warts. Warts are highly contagious and are mainly passed by direct skin contact, such as when you pick at your warts and then touch another area of your body. You can also spread them with things like towels or razors that have touched a wart on your body or on someone else's. Most warts are harmless, and you don't need to do anything unless, of course, they're painful or embarrassing. Over-the-counter gels, liquids, and pads with salicylic acid work by peeling away the dead skin cells of the wart to gradually dissolve it. For better results, soak the wart in warm water, then gently sand it with a disposable emery board before you apply the product. Be sure to use a new emery board each time. Be patient, it can take several months. If you have diabetes or a weakened immune system, you should have a doctor take a look before you treat a wart yourself. Cryotherapy, immunotherapy, laser treatment, and topical cantharidin are good therapeutic options. ",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "Rough bump/spot on the side of finger? What exactly is this. Doesn't hurt or anything.",
+        "query_content_en": ""
+    },
+    {
+        "encounter_id": "11m0l9c",
+        "image_ids": [
+            "11m0l9c"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "Most probably it is a case of deep coarse wrinkle that forms due to chronic sun exposure, facial muscle contraction, smoking, and aging. Retinoids that include retinol, retinal aldehyde (Retin-A), retinyl esters, adapalene, tazarotene, and tretinoin are chemicals that come from vitamin A that help reduce lines and wrinkles in your skin and improve your skin’s texture, pigment and hydration levels. You can find retinol in many over-the-counter skin care products. Retinol can penetrate deep into your skin’s layers to activate collagen and elastin, which give your skin structure and support to prevent wrinkles. Also, you can try nonsurgical procedures at the dermatology clinic like microneedling, chemical peeling, laser resurfacing, Botox injection, and soft tissue fillers injection.",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "Puffy line on face any suggestions?",
+        "query_content_en": ""
+    },
+    {
+        "encounter_id": "11htonk",
+        "image_ids": [
+            "11htonk"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "It is a case of eczema due to dry skin (xerosis). Dryness is commonly seen in people with atopic dermatitis. People exposed to a dry environment may experience dry skin, for example low humidity in desert climates or cool windy conditions, excessive air conditioning, direct heat from a fire or fan heater, excessive bathing, contact with soap, laundry detergents and solvents, inappropriate topical agents such as alcohol, frictional irritation from rough clothing or abrasives. Try to eliminate aggravating factors. Reduce the frequency of bathing, use a humidifier in winter and air conditioner in summer, compare having a short shower with a prolonged soak in a hot bath, ensure good hydration by drinking plenty of water, use lukewarm water not hot water, replace standard soap with a substitute such as a synthetic detergent cleanser, water-miscible emollient, bath oil, anti-pruritic tar oil, colloidal oatmeal etc., and apply an emollient liberally and often, particularly shortly after bathing, and when itchy. The drier the skin, the thicker this should be, especially on the hands. Apply emollients frequently and avoid irritants. Use topical steroid cream twice daily for 2-4 weeks and oral antihistamines if needed.",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "What is this rash ? It goes away then comes back. It get really itchy and little blisters appear when I itch it then goes away and comes back after a few weeks. Eczema ? Contact dermatitis?",
+        "query_content_en": ""
+    },
+    {
+        "encounter_id": "11m079w",
+        "image_ids": [
+            "11m079w"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "Cold, dry weather, sun damage, and frequently licking your lips are just some of the reasons your lips might feel dry and chapped. Use non-irritating lip balm, lipstick, and other products that you apply to your lips. If your lips burn, sting, or feel uncomfortable when you apply a product to your lips, it means you’re irritating your lips, so you want to stop using that product. Ingredients that can help heal chapped lips are castor seed oil, ceramides, dimethicone, hemp seed oil, mineral oil, petrolatum, shea butter, sun-protective ingredients, such as titanium oxide or zinc oxide, and white petroleum jelly. It also helps to use products that are fragrance free and hypoallergenic. Apply a non-irritating lip balm (or lip moisturizer) several times a day and before bed. Slather on a non-irritating lip balm with SPF 30 or higher before going outdoors. Apply the lip balm every 2 hours. Drink plenty of water. Chapped lips are dry lips, so you want to stay hydrated. Stop licking, biting, and picking at your lips. ",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "[deleted by user]",
+        "query_content_en": "[removed]"
+    },
+    {
+        "encounter_id": "1251tnr",
+        "image_ids": [
+            "1251tnr"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "It is a case of plantar wart. This noncancerous growth appear when your skin is infected with one of the many viruses of the human papillomavirus (HPV) family. If you cut or damage your skin in some way, it's easier for the virus to take hold. That's why people with chronic skin conditions, such as eczema, or who bite their nails or pick at hangnails are prone to getting warts. Warts are highly contagious and are mainly passed by direct skin contact, such as when you pick at your warts and then touch another area of your body. You can also spread them with things like towels or razors that have touched a wart on your body or on someone else's. Most warts are harmless, and you don't need to do anything unless, of course, they're painful or embarrassing. Over-the-counter gels, liquids, and pads with salicylic acid work by peeling away the dead skin cells of the wart to gradually dissolve it. For better results, soak the wart in warm water, then gently sand it with a disposable emery board before you apply the product. Be sure to use a new emery board each time. Be patient, it can take several months. If you have diabetes or a weakened immune system, you should have a doctor take a look before you treat a wart yourself. Cryotherapy, immunotherapy, laser treatment, and topical cantharidin are good therapeutic options. ",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": "Is this a wart or a scab?",
+        "query_content_en": "On vacation and I just noticed this. I will be going to the dermatologist upon my return, but wondering what this is."
+    },
+    {
+        "encounter_id": "122xd14",
+        "image_ids": [
+            "122xd14"
+        ],
+        "responses": [
+            {
+                "author_id": "annotator1",
+                "content_en": "Basically getting rid of the itch begins with finding out why your scalp itches, If your scalp is dry and itchy and you see flakes on your hair or clothing, you may have dandruff. Leaving some shampoo on your scalp can also irritate it.  An itchy scalp is the most common symptom of head lice, too. If you suspect that head lice are causing the itch, ask someone to closely examine your scalp and hair for signs of these tiny bugs. Seborrheic dermatitis is also a possible cause for this itching if you have oily and greasy flakes. Severe itching usually results in scalp injury and propably secondary infection (folliculitis) which is the case here. Treatment of the cause of itchy scalp is the mainstay for preventing folliculitis. Anti-dandruff shampoos are essential for people with straight or wavy hair who usually shampoo every day while people with curly or tightly coiled hair are likely to shampoo once a week. Shampoo containing 2% zinc pyrithione, 1% ketoconazole or 1% selenium sulfide is recommended and sometimes topoical hydrocortisone creams or lotions are needed. To get seborrheic dermatitis under control, it’s important to leave the shampoo on your scalp for 5-10 minutes, this gives the medication time to work. You also want to thoroughly rinse off the shampoo. Skin with seborrheic dermatitis is easily irritated. If you have shampoo residue on your skin or scalp, it could cause a flare-up. You need to get rid of the lice if it is the cause of itching. For folliculitis, you can also try topical antibiotic cream (e.g. fusidic acid gel), clindamycin solution, erythromycin solution, mild topical steroid lotions or creams, oral antihistamines, oral antibiotics, particularly long-term tetracycline. Oral isotretinoin, a long-term low-dose treatment may be required. If that doesn't help, or your condition worsens, consult a dermatologist.",
+                "completeness": 1,
+                "contains_freq_ans": 1
+            }
+        ],
+        "query_title_en": 
