@@ -13,4 +13,5 @@ Create an images folder within the 2024_dataset folder and place the train, test
 pip install -r requirements.txt
 ```
 
-5. **Create Gemini API key and add it to .env**
+5. **Create Gemini API key and add the following line to the .env file**
+API_KEY=<your key here>
