@@ -2,4 +2,4 @@ pandas
 pillow
 matplotlib
 google-generativeai
-# python-dotenv 
+python-dotenv 
