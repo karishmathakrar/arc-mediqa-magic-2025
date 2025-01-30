@@ -3,3 +3,5 @@ pillow
 matplotlib
 google-generativeai
 python-dotenv 
+tqdm
+seaborn
