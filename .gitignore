@@ -1,3 +1,4 @@
 2024_dataset/images/
+2024_dataset/train_df_cleaned.csv
 .venv/
 .env
