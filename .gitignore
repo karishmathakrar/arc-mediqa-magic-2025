@@ -6,3 +6,4 @@
 2024_dataset/train_df_with_embeddings.pkl
 2024_dataset/train_df_with_image_stats.pkl
 2024_dataset/train_df_with_metadata.pkl
+2024_dataset/train_df_final.pkl
