@@ -1,6 +1,8 @@
+.venv/
+.env
 2024_dataset/images/
 2024_dataset/train_df_cleaned.csv
 2024_dataset/train_df_with_combined_features.csv
 2024_dataset/train_df_with_embeddings.pkl
-.venv/
-.env
+2024_dataset/train_df_with_image_stats.pkl
+2024_dataset/train_df_with_metadata.pkl
