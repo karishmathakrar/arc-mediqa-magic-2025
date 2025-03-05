@@ -6,3 +6,4 @@ python-dotenv
 tqdm
 seaborn
 FlagEmbedding
+pre-commit
