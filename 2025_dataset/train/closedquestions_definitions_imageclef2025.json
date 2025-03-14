@@ -1,0 +1,741 @@
+[
+    {
+        "qid": "CQID010-001",
+        "question_type_en": "Site",
+        "question_type_zh": "部位",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "How much of the body is affected?",
+        "question_zh": "身体的哪些部位受到影响？",
+        "options_en": [
+            "single spot",
+            "limited area",
+            "widespread",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "单个点",
+            "有限区域",
+            "广泛",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID011-001",
+        "question_type_en": "Site Location",
+        "question_type_zh": "部位位置",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "1 Where is the affected area?",
+        "question_zh": "1 受影响的区域在哪里？",
+        "options_en": [
+            "head",
+            "neck",
+            "upper extremities",
+            "lower extremities",
+            "chest/abdomen",
+            "back",
+            "other (please specify)",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "头部",
+            "颈部",
+            "上肢",
+            "下肢",
+            "腹部",
+            "背部",
+            "其他（请注明）",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID011-002",
+        "question_type_en": "Site Location",
+        "question_type_zh": "部位位置",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "2 Where is the affected area?",
+        "question_zh": "2 受影响的区域在哪里？",
+        "options_en": [
+            "head",
+            "neck",
+            "upper extremities",
+            "lower extremities",
+            "chest/abdomen",
+            "back",
+            "other (please specify)",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "头部",
+            "颈部",
+            "上肢",
+            "下肢",
+            "腹部",
+            "背部",
+            "其他（请注明）",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID011-003",
+        "question_type_en": "Site Location",
+        "question_type_zh": "部位位置",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "3 Where is the affected area?",
+        "question_zh": "3 受影响的区域在哪里？",
+        "options_en": [
+            "head",
+            "neck",
+            "upper extremities",
+            "lower extremities",
+            "chest/abdomen",
+            "back",
+            "other (please specify)",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "头部",
+            "颈部",
+            "上肢",
+            "下肢",
+            "腹部",
+            "背部",
+            "其他（请注明）",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID011-004",
+        "question_type_en": "Site Location",
+        "question_type_zh": "部位位置",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "4 Where is the affected area?",
+        "question_zh": "4 受影响的区域在哪里？",
+        "options_en": [
+            "head",
+            "neck",
+            "upper extremities",
+            "lower extremities",
+            "chest/abdomen",
+            "back",
+            "other (please specify)",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "头部",
+            "颈部",
+            "上肢",
+            "下肢",
+            "腹部",
+            "背部",
+            "其他（请注明）",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID011-005",
+        "question_type_en": "Site Location",
+        "question_type_zh": "部位位置",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "5 Where is the affected area?",
+        "question_zh": "5 受影响的区域在哪里？",
+        "options_en": [
+            "head",
+            "neck",
+            "upper extremities",
+            "lower extremities",
+            "chest/abdomen",
+            "back",
+            "other (please specify)",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "头部",
+            "颈部",
+            "上肢",
+            "下肢",
+            "腹部",
+            "背部",
+            "其他（请注明）",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID011-006",
+        "question_type_en": "Site Location",
+        "question_type_zh": "部位位置",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "6 Where is the affected area?",
+        "question_zh": "6 受影响的区域在哪里？",
+        "options_en": [
+            "head",
+            "neck",
+            "upper extremities",
+            "lower extremities",
+            "chest/abdomen",
+            "back",
+            "other (please specify)",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "头部",
+            "颈部",
+            "上肢",
+            "下肢",
+            "腹部",
+            "背部",
+            "其他（请注明）",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID012-001",
+        "question_type_en": "Size",
+        "question_type_zh": "大小",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "1 How large are the affected areas? Please specify which affected area for each selection.",
+        "question_zh": "1 受影响的部位有多大？请对每个部位具体说明",
+        "options_en": [
+            "size of thumb nail",
+            "size of palm",
+            "larger area",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "指甲大小",
+            "掌心大小",
+            "较大面积",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID012-002",
+        "question_type_en": "Size",
+        "question_type_zh": "大小",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "2 How large are the affected areas? Please specify which affected area for each selection.",
+        "question_zh": "2 受影响的部位有多大？请对每个部位具体说明",
+        "options_en": [
+            "size of thumb nail",
+            "size of palm",
+            "larger area",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "指甲大小",
+            "掌心大小",
+            "较大面积",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID012-003",
+        "question_type_en": "Size",
+        "question_type_zh": "大小",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "3 How large are the affected areas? Please specify which affected area for each selection.",
+        "question_zh": "3 受影响的部位有多大？请对每个部位具体说明",
+        "options_en": [
+            "size of thumb nail",
+            "size of palm",
+            "larger area",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "指甲大小",
+            "掌心大小",
+            "较大面积",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID012-004",
+        "question_type_en": "Size",
+        "question_type_zh": "大小",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "4 How large are the affected areas? Please specify which affected area for each selection.",
+        "question_zh": "4 受影响的部位有多大？请对每个部位具体说明",
+        "options_en": [
+            "size of thumb nail",
+            "size of palm",
+            "larger area",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "指甲大小",
+            "掌心大小",
+            "较大面积",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID012-005",
+        "question_type_en": "Size",
+        "question_type_zh": "大小",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "5 How large are the affected areas? Please specify which affected area for each selection.",
+        "question_zh": "5 受影响的部位有多大？请对每个部位具体说明",
+        "options_en": [
+            "size of thumb nail",
+            "size of palm",
+            "larger area",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "指甲大小",
+            "掌心大小",
+            "较大面积",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID012-006",
+        "question_type_en": "Size",
+        "question_type_zh": "大小",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "6 How large are the affected areas? Please specify which affected area for each selection.",
+        "question_zh": "6 受影响的部位有多大？请对每个部位具体说明",
+        "options_en": [
+            "size of thumb nail",
+            "size of palm",
+            "larger area",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "指甲大小",
+            "掌心大小",
+            "较大面积",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID015-001",
+        "question_type_en": "Onset",
+        "question_type_zh": "发作时间",
+        "question_category_en": "General",
+        "question_category_zh": "综合",
+        "question_en": "When did the patient first notice the issue?",
+        "question_zh": "病人第一次注意到这个问题是什么时候？",
+        "options_en": [
+            "within hours",
+            "within days",
+            "within weeks",
+            "within months",
+            "over a year",
+            "multiple years",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "数小时内",
+            "数天内",
+            "数周内",
+            "数月内",
+            "超过一年",
+            "多于一年",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID020-001",
+        "question_type_en": "Skin Description",
+        "question_type_zh": "",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "1 What label best describes the affected area?",
+        "question_zh": "1 哪一个标签能最好地描述受影响的区域？",
+        "options_en": [
+            "raised or bumpy",
+            "flat",
+            "skin loss or sunken",
+            "thick or raised",
+            "thin or close to the surface",
+            "warty",
+            "crust",
+            "scab",
+            "weeping",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "凸起或有疙瘩",
+            "平坦",
+            "皮肤缺失或凹陷",
+            "厚或凸起",
+            "薄或接近表面",
+            "疣状",
+            "痂",
+            "结痂",
+            "渗出",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID020-002",
+        "question_type_en": "Skin Description",
+        "question_type_zh": "",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "2 What label best describes the affected area?",
+        "question_zh": "2 哪一个标签能最好地描述受影响的区域？",
+        "options_en": [
+            "raised or bumpy",
+            "flat",
+            "skin loss or sunken",
+            "thick or raised",
+            "thin or close to the surface",
+            "warty",
+            "crust",
+            "scab",
+            "weeping",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "凸起或有疙瘩",
+            "平坦",
+            "皮肤缺失或凹陷",
+            "厚或凸起",
+            "薄或接近表面",
+            "疣状",
+            "痂",
+            "结痂",
+            "渗出",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID020-003",
+        "question_type_en": "Skin Description",
+        "question_type_zh": "",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "3 What label best describes the affected area?",
+        "question_zh": "3 哪一个标签能最好地描述受影响的区域？",
+        "options_en": [
+            "raised or bumpy",
+            "flat",
+            "skin loss or sunken",
+            "thick or raised",
+            "thin or close to the surface",
+            "warty",
+            "crust",
+            "scab",
+            "weeping",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "凸起或有疙瘩",
+            "平坦",
+            "皮肤缺失或凹陷",
+            "厚或凸起",
+            "薄或接近表面",
+            "疣状",
+            "痂",
+            "结痂",
+            "渗出",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID020-004",
+        "question_type_en": "Skin Description",
+        "question_type_zh": "",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "4 What label best describes the affected area?",
+        "question_zh": "4 哪一个标签能最好地描述受影响的区域？",
+        "options_en": [
+            "raised or bumpy",
+            "flat",
+            "skin loss or sunken",
+            "thick or raised",
+            "thin or close to the surface",
+            "warty",
+            "crust",
+            "scab",
+            "weeping",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "凸起或有疙瘩",
+            "平坦",
+            "皮肤缺失或凹陷",
+            "厚或凸起",
+            "薄或接近表面",
+            "疣状",
+            "痂",
+            "结痂",
+            "渗出",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID020-005",
+        "question_type_en": "Skin Description",
+        "question_type_zh": "",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "5 What label best describes the affected area?",
+        "question_zh": "5 哪一个标签能最好地描述受影响的区域？",
+        "options_en": [
+            "raised or bumpy",
+            "flat",
+            "skin loss or sunken",
+            "thick or raised",
+            "thin or close to the surface",
+            "warty",
+            "crust",
+            "scab",
+            "weeping",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "凸起或有疙瘩",
+            "平坦",
+            "皮肤缺失或凹陷",
+            "厚或凸起",
+            "薄或接近表面",
+            "疣状",
+            "痂",
+            "结痂",
+            "渗出",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID020-006",
+        "question_type_en": "Skin Description",
+        "question_type_zh": "",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "6 What label best describes the affected area?",
+        "question_zh": "6 哪一个标签能最好地描述受影响的区域？",
+        "options_en": [
+            "raised or bumpy",
+            "flat",
+            "skin loss or sunken",
+            "thick or raised",
+            "thin or close to the surface",
+            "warty",
+            "crust",
+            "scab",
+            "weeping",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "凸起或有疙瘩",
+            "平坦",
+            "皮肤缺失或凹陷",
+            "厚或凸起",
+            "薄或接近表面",
+            "疣状",
+            "痂",
+            "结痂",
+            "渗出",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID020-007",
+        "question_type_en": "Skin Description",
+        "question_type_zh": "",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "7 What label best describes the affected area?",
+        "question_zh": "7 哪一个标签能最好地描述受影响的区域？",
+        "options_en": [
+            "raised or bumpy",
+            "flat",
+            "skin loss or sunken",
+            "thick or raised",
+            "thin or close to the surface",
+            "warty",
+            "crust",
+            "scab",
+            "weeping",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "凸起或有疙瘩",
+            "平坦",
+            "皮肤缺失或凹陷",
+            "厚或凸起",
+            "薄或接近表面",
+            "疣状",
+            "痂",
+            "结痂",
+            "渗出",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID020-008",
+        "question_type_en": "Skin Description",
+        "question_type_zh": "",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "8 What label best describes the affected area?",
+        "question_zh": "8 哪一个标签能最好地描述受影响的区域？",
+        "options_en": [
+            "raised or bumpy",
+            "flat",
+            "skin loss or sunken",
+            "thick or raised",
+            "thin or close to the surface",
+            "warty",
+            "crust",
+            "scab",
+            "weeping",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "凸起或有疙瘩",
+            "平坦",
+            "皮肤缺失或凹陷",
+            "厚或凸起",
+            "薄或接近表面",
+            "疣状",
+            "痂",
+            "结痂",
+            "渗出",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID020-009",
+        "question_type_en": "Skin Description",
+        "question_type_zh": "",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "9 What label best describes the affected area?",
+        "question_zh": "9 哪一个标签能最好地描述受影响的区域？",
+        "options_en": [
+            "raised or bumpy",
+            "flat",
+            "skin loss or sunken",
+            "thick or raised",
+            "thin or close to the surface",
+            "warty",
+            "crust",
+            "scab",
+            "weeping",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "凸起或有疙瘩",
+            "平坦",
+            "皮肤缺失或凹陷",
+            "厚或凸起",
+            "薄或接近表面",
+            "疣状",
+            "痂",
+            "结痂",
+            "渗出",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID025-001",
+        "question_type_en": "Itch",
+        "question_type_zh": "瘙痒",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "Is there any associated itching with the skin problem?",
+        "question_zh": "皮肤问题是否伴有瘙痒？",
+        "options_en": [
+            "yes",
+            "no",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "是",
+            "否",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID034-001",
+        "question_type_en": "Lesion Color",
+        "question_type_zh": "损伤颜色",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "Compared to the normal surrounding skin, what is the color of the skin lesion?",
+        "question_zh": "与周围正常皮肤相比，皮肤损伤的颜色如何？",
+        "options_en": [
+            "normal skin color",
+            "pink",
+            "red",
+            "brown",
+            "blue",
+            "purple",
+            "black",
+            "white",
+            "combination (please specify)",
+            "hyperpigmentation",
+            "hypopigmentation",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "正常肤色",
+            "粉色",
+            "红色",
+            "棕色",
+            "蓝色",
+            "紫色",
+            "黑色",
+            "白色",
+            "多色（请注明）",
+            "色素沉着",
+            "色素缺失",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID035-001",
+        "question_type_en": "Lesion Count",
+        "question_type_zh": "损伤数量",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "How many skin lesions are there?",
+        "question_zh": "皮肤损伤有多少个？",
+        "options_en": [
+            "single",
+            "multiple (please specify)",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "单个",
+            "多个（请注明）",
+            "无法得知"
+        ]
+    },
+    {
+        "qid": "CQID036-001",
+        "question_type_en": "Texture",
+        "question_type_zh": "质地",
+        "question_category_en": "Skin Specific",
+        "question_category_zh": "关于皮肤",
+        "question_en": "What is the skin lesion texture?",
+        "question_zh": "皮肤损伤的质地是什么？",
+        "options_en": [
+            "smooth",
+            "rough",
+            "Not mentioned"
+        ],
+        "options_zh": [
+            "光滑",
+            "粗糙",
+            "无法得知"
+        ]
+    }
+]
