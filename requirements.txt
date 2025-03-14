@@ -1,9 +1,31 @@
+# Core Libraries
+torch==2.2.2+cu121 -f https://download.pytorch.org/whl/torch_stable.html
+torchvision==0.17.2+cu121 -f https://download.pytorch.org/whl/torch_stable.html
+torchaudio==2.2.2+cu121 -f https://download.pytorch.org/whl/torch_stable.html
+tensorboard
+
+# Gemma-Specific Dependencies
+git+https://github.com/huggingface/transformers@v4.49.0-Gemma-3
+datasets==3.3.2
+accelerate==1.4.0
+evaluate==0.4.3
+bitsandbytes==0.45.3
+trl==0.15.2
+peft==0.14.0
+sentencepiece
+
+# Protobuf (Ensures Google AI Compatibility)
+protobuf<6.0.0
+
+# Additional Dependencies
 pandas
-pillow
+pillow==11.1.0
 matplotlib
 google-generativeai
-python-dotenv 
+python-dotenv
 tqdm
 seaborn
-FlagEmbedding
 pre-commit
+
+# FlagEmbedding (Avoids Dependency Conflicts)
+FlagEmbedding --no-deps
