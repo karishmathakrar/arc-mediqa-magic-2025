@@ -17,3 +17,10 @@ gemma-product-description
 processed_data_debug/
 processed_data/
 .ipynb_checkpoints/
+2025_dataset/test/images_test.zip
+2025_dataset/train/images_train.zip
+2025_dataset/valid/images_valid.zip
+.hf_cache/
+processed_data_inference/
+__pycache__/
+inference_results.csv
