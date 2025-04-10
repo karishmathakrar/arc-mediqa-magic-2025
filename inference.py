@@ -145,6 +145,7 @@ def run_inference(model, processor, dataset, batch_size=1):
                 max_new_tokens=MAX_NEW_TOKENS,
                 do_sample=False,  # Deterministic generation
                 num_beams=1,      # Simple greedy decoding
+                temperature=0.1,
             )
             
             # Decode generated text

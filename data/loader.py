@@ -69,17 +69,45 @@ class MedicalImageDataset(Dataset):
             ]
             
             return {"messages": messages}
+        
+        # else:
+        #     # Format for inference (no assistant response)
+        #     messages = [
+        #         {
+        #             "role": "system",
+        #             "content": [{"type": "text", "text": "You are an AI assistant answering medical questions based on clinical images."}],
+        #         },
+        #         {
+        #             "role": "user",
+        #             "content": [
+        #                 {"type": "text", "text": example['query_text']},
+        #                 *[{"type": "image", "image": img} for img in images],
+        #             ],
+        #         },
+        #     ]
+            
+        #     return {
+        #         "messages": messages, 
+        #         "encounter_id": example['encounter_id'],
+        #         "qid": example['qid'],
+        #         "ground_truth": example['answer_text']
+        #     }
+        
         else:
-            # Format for inference (no assistant response)
+            # Format for inference with a specific instruction to select an option
+            query_text = example['query_text']
+            # Add an explicit instruction
+            query_text += "\n\nImportant: Please respond with ONLY the option number that best answers the question."
+            
             messages = [
                 {
                     "role": "system",
-                    "content": [{"type": "text", "text": "You are an AI assistant answering medical questions based on clinical images."}],
+                    "content": [{"type": "text", "text": "You are an AI assistant answering medical questions based on clinical images. Provide only the number of the correct option."}],
                 },
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": example['query_text']},
+                        {"type": "text", "text": query_text},
                         *[{"type": "image", "image": img} for img in images],
                     ],
                 },
@@ -91,7 +119,6 @@ class MedicalImageDataset(Dataset):
                 "qid": example['qid'],
                 "ground_truth": example['answer_text']
             }
-
 
 def create_collate_fn(processor, mode="inference"):
     """
