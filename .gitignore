@@ -25,3 +25,4 @@ evaluation_results/
 merged_model/
 models/fine_tuned_model/
 processed_data_train/
+processed_data_fine_tuned_model/
