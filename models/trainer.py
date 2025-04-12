@@ -116,12 +116,20 @@ def merge_and_save_lora_model(base_model_id, adapter_model_dir, output_dir="merg
     """
     utils.ensure_directory(output_dir)
     
+    # First load the processor from the adapter model to ensure we match tokenizers
+    logger.info(f"Loading processor from adapter: {adapter_model_dir}")
+    processor = AutoProcessor.from_pretrained(adapter_model_dir, token=HF_TOKEN)
+    
     logger.info(f"Loading base model: {base_model_id}")
     model = AutoModelForImageTextToText.from_pretrained(
         base_model_id, 
         low_cpu_mem_usage=True, 
         token=HF_TOKEN
     )
+    
+    # Important: Resize the token embeddings to match what was used during training
+    logger.info(f"Resizing token embeddings to match adapter (size: {len(processor.tokenizer)})")
+    model.resize_token_embeddings(len(processor.tokenizer))
     
     logger.info(f"Loading PEFT adapter from: {adapter_model_dir}")
     peft_model = PeftModel.from_pretrained(model, adapter_model_dir)
@@ -134,7 +142,43 @@ def merge_and_save_lora_model(base_model_id, adapter_model_dir, output_dir="merg
     
     # Also save the processor
     logger.info("Saving processor...")
-    processor = AutoProcessor.from_pretrained(adapter_model_dir, token=HF_TOKEN)
     processor.save_pretrained(output_dir)
     
     return output_dir
+
+# def merge_and_save_lora_model(base_model_id, adapter_model_dir, output_dir="merged_model"):
+#     """
+#     Merge LoRA weights with base model and save.
+    
+#     Args:
+#         base_model_id: Base model ID
+#         adapter_model_dir: Directory with adapter weights
+#         output_dir: Directory to save the merged model
+        
+#     Returns:
+#         Output directory path
+#     """
+#     utils.ensure_directory(output_dir)
+    
+#     logger.info(f"Loading base model: {base_model_id}")
+#     model = AutoModelForImageTextToText.from_pretrained(
+#         base_model_id, 
+#         low_cpu_mem_usage=True, 
+#         token=HF_TOKEN
+#     )
+    
+#     logger.info(f"Loading PEFT adapter from: {adapter_model_dir}")
+#     peft_model = PeftModel.from_pretrained(model, adapter_model_dir)
+    
+#     logger.info("Merging models...")
+#     merged_model = peft_model.merge_and_unload()
+    
+#     logger.info(f"Saving merged model to: {output_dir}")
+#     merged_model.save_pretrained(output_dir, safe_serialization=True, max_shard_size="2GB")
+    
+#     # Also save the processor
+#     logger.info("Saving processor...")
+#     processor = AutoProcessor.from_pretrained(adapter_model_dir, token=HF_TOKEN)
+#     processor.save_pretrained(output_dir)
+    
+#     return output_dir

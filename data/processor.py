@@ -118,9 +118,13 @@ class MedicalDataProcessor:
             options_text = ", ".join([f"{i+1}. {opt}" for i, opt in enumerate(options)])
             
             # Combine context
-            clinical_context = f"{encounter_data.get('query_title_en', '')}: {encounter_data.get('query_content_en', '')}"
+#             clinical_context = f"{encounter_data.get('query_title_en', '')}: {encounter_data.get('query_content_en', '')}"
+#             metadata = f"Type: {question_data.get('question_type_en', '')}, Category: {question_data.get('question_category_en', '')}"
+#             query_text = f"Clinical Context: {clinical_context}\nQuestion: Based on the image, {question_data.get('question_en', '')}\nQuestion Metadata: {metadata}\nOptions: {options_text}"
+            
             metadata = f"Type: {question_data.get('question_type_en', '')}, Category: {question_data.get('question_category_en', '')}"
-            query_text = f"Clinical Context: {clinical_context}\nQuestion: Based on the image, {question_data.get('question_en', '')}\nQuestion Metadata: {metadata}\nOptions: {options_text}"
+            query_text = f"Question: Based on the image, {question_data.get('question_en', '')}\nQuestion Metadata: {metadata}\nOptions: {options_text}"
+
             
             results.append({
                 "encounter_id": encounter_id,

@@ -13,9 +13,6 @@ results/
 2025_dataset/valid/images_valid
 2025_dataset/test/images_test
 2025_dataset/train/final_df.csv
-gemma-product-description
-processed_data_debug/
-processed_data/
 .ipynb_checkpoints/
 2025_dataset/test/images_test.zip
 2025_dataset/train/images_train.zip
@@ -24,3 +21,7 @@ processed_data/
 processed_data_inference/
 __pycache__/
 inference_results.csv
+evaluation_results/
+merged_model/
+models/fine_tuned_model/
+processed_data_train/

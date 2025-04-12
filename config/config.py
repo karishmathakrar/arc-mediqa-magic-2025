@@ -16,7 +16,7 @@ PROCESSED_DATA_DIR = os.path.join(BASE_DIR, "processed_data")
 MODELS_DIR = os.path.join(BASE_DIR, "models")
 
 # Model settings
-MODEL_ID = "google/gemma-3-4b-pt"
+MODEL_ID = "google/gemma-3-4b-it"
 HF_TOKEN = os.getenv("HF_TOKEN")
 HF_CACHE_DIR = os.path.join(BASE_DIR, ".hf_cache")
 

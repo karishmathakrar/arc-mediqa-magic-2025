@@ -70,39 +70,22 @@ class MedicalImageDataset(Dataset):
             
             return {"messages": messages}
         
-        # else:
-        #     # Format for inference (no assistant response)
-        #     messages = [
-        #         {
-        #             "role": "system",
-        #             "content": [{"type": "text", "text": "You are an AI assistant answering medical questions based on clinical images."}],
-        #         },
-        #         {
-        #             "role": "user",
-        #             "content": [
-        #                 {"type": "text", "text": example['query_text']},
-        #                 *[{"type": "image", "image": img} for img in images],
-        #             ],
-        #         },
-        #     ]
-            
-        #     return {
-        #         "messages": messages, 
-        #         "encounter_id": example['encounter_id'],
-        #         "qid": example['qid'],
-        #         "ground_truth": example['answer_text']
-        #     }
-        
         else:
             # Format for inference with a specific instruction to select an option
             query_text = example['query_text']
-            # Add an explicit instruction
-            query_text += "\n\nImportant: Please respond with ONLY the option number that best answers the question."
-            
+            # Make instructions even more forceful
+#             query_text += "\n\nSelect one of the available options."
+#             query_text += "\n\nCRITICAL INSTRUCTION: Analyze the image and select the most appropriate option from the numbered list above. Your ENTIRE response must be ONLY the single digit (1, 2, 3, etc.) corresponding to the CORRECT option number. DO NOT include any explanation, reasoning, or additional text."
+#             query_text += "\n\nCRITICAL INSTRUCTION: Carefully examine the image. If a specific option clearly matches the visual evidence, select its number. If the image does not clearly support any option, respond with the number corresponding to 'Not mentioned'. Respond ONLY with the single digit (1, 2, 3, etc.). DO NOT include explanations or additional text."
+#             query_text += "\n\nCRITICAL INSTRUCTION: Carefully examine the image. Choose the most appropriate option from the list below. Your response must be the exact text of one of the options provided. If none are clearly supported by the image, respond with 'Not mentioned'. DO NOT include any explanation or numbering."
+            query_text += "\n\nCRITICAL INSTRUCTION: Only respond with an option if it is **clearly and unambiguously** supported by the image. If the image is unclear, incomplete, or could fit multiple answers, respond with: 'Not mentioned'. You must respond with the **exact text** of one option below. No numbers, no explanation. Given the medical context, err on the side of caution."
             messages = [
                 {
                     "role": "system",
-                    "content": [{"type": "text", "text": "You are an AI assistant answering medical questions based on clinical images. Provide only the number of the correct option."}],
+#                     "content": [{"type": "text", "text": "You are a physician answering medical questions based on clinical images that responds based ONLY on the provided options."}],
+#                     "content": [{"type": "text", "text": "You are a medical image analysis assistant. Your only task is to examine the provided images and select the correct option number that best describes what you see. Respond with ONLY the option number (e.g., '2') and nothing else."}],
+#                     "content": [{"type": "text", "text": "You are a medical image analysis assistant. Your only task is to examine the provided clinical images and select the correct option number that matches what is visually evident. If the image does not clearly support any of the options, select the number for 'Not mentioned'. Respond ONLY with the option number (e.g., '2'). Do not explain or add any text."}],
+                    "content": [{"type": "text", "text": "You are a medical image analysis assistant. Your only task is to examine the provided clinical images and select the exact option text that best describes what you see. Note this is not the full context so if you are unsure or speculate other regions being affected, respond with 'Not mentioned'. You must respond with the full text of one of the provided options, exactly as written. Do not include any additional words or reasoning."}],
                 },
                 {
                     "role": "user",

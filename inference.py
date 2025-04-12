@@ -8,6 +8,7 @@ import argparse
 import logging
 import pandas as pd
 import torch
+import json
 from tqdm.auto import tqdm
 
 # Add the current directory to the path so Python can find the local modules
@@ -18,6 +19,10 @@ import utils
 from data.processor import MedicalDataProcessor
 from data.loader import MedicalImageDataset, create_dataloader
 from models.model_utils import setup_model_and_processor
+from convert_results import convert_csv_to_json
+
+from postprocess_utils import convert_csv_to_indexed_json
+
 
 # Configure logging
 logging.basicConfig(
@@ -63,12 +68,25 @@ def parse_args():
         "--output_file", 
         type=str, 
         default="inference_results.csv",
-        help="Path to save inference results"
+        help="Path to save inference results CSV"
+    )
+    parser.add_argument(
+        "--json_output", 
+        type=str, 
+        default="data_cvqa_sys.json",
+        help="Path to save inference results in JSON format for evaluation"
     )
     parser.add_argument(
         "--reprocess", 
         action="store_true",
         help="Reprocess the data even if already processed"
+    )
+    
+    parser.add_argument(
+        "--indexed_json_output", 
+        type=str, 
+        default="data_cvqa_sys_indices.json",
+        help="Path to save indexed JSON for evaluation"
     )
     
     return parser.parse_args()
@@ -145,7 +163,7 @@ def run_inference(model, processor, dataset, batch_size=1):
                 max_new_tokens=MAX_NEW_TOKENS,
                 do_sample=False,  # Deterministic generation
                 num_beams=1,      # Simple greedy decoding
-                temperature=0.1,
+                temperature=0,
             )
             
             # Decode generated text
@@ -161,21 +179,17 @@ def run_inference(model, processor, dataset, batch_size=1):
                     "ground_truth": metadata["ground_truth"]
                 })
                 
-#             # Display progress for the first few examples
-#             if batch_idx < 2:
-#                 logger.info(f"\nBatch {batch_idx}, Example {i}:")
-#                 logger.info(f"Generated: {text}")
-#                 logger.info(f"Ground truth: {metadata['ground_truth']}")
-    
     return results
 
-def save_results(results, output_file):
+def save_results(results, output_file, json_output_file=None, indexed_json_output=None):
     """
-    Save inference results to a file.
+    Save inference results to files.
     
     Args:
         results: List of result dictionaries
-        output_file: Path to save results
+        output_file: Path to save CSV results
+        json_output_file: Path to save JSON results for evaluation
+        indexed_json_output: Path to save indexed JSON for evaluation
         
     Returns:
         DataFrame with results
@@ -185,8 +199,21 @@ def save_results(results, output_file):
     logger.info("\nInference Results:")
     logger.info(f"Total examples processed: {len(results_df)}")
     
+    # Save CSV results
     results_df.to_csv(output_file, index=False)
-    logger.info(f"Results saved to '{output_file}'")
+    logger.info(f"CSV results saved to '{output_file}'")
+    
+    # Convert and save JSON results for evaluation
+    if json_output_file:
+        # Use the conversion utility to create the expected JSON format
+        convert_csv_to_json(output_file, json_output_file)
+        logger.info(f"JSON results for evaluation saved to '{json_output_file}'")
+    
+    # Convert and save indexed JSON results for evaluation
+    if indexed_json_output:
+        # Convert directly to indexed format
+        convert_csv_to_indexed_json(output_file, indexed_json_output)
+        logger.info(f"Indexed JSON results for evaluation saved to '{indexed_json_output}'")
     
     return results_df
 
@@ -220,7 +247,12 @@ def main():
     results = run_inference(model, processor, dataset, batch_size=args.batch_size)
     
     # Save results
-    results_df = save_results(results, args.output_file)
+    results_df = save_results(
+        results, 
+        args.output_file, 
+        json_output_file=args.json_output,
+        indexed_json_output=args.indexed_json_output
+    )
     
     logger.info("Inference completed successfully.")
 
