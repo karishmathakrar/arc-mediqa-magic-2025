@@ -21,6 +21,7 @@ results/
 .hf_cache/
 **pycache**/
 gemma-product-description/
+processed_data/
 
 # Replaced paths for reorganized structure
 data/processed/

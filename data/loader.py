@@ -9,7 +9,7 @@ from PIL import Image
 from torch.utils.data import Dataset, DataLoader
 
 # Use absolute imports instead of relative imports
-import utils
+import utils.utils as utils
 
 logger = logging.getLogger(__name__)
 

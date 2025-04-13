@@ -10,7 +10,7 @@ import logging
 import pandas as pd
 
 # Use absolute imports instead of relative imports
-import utils
+from utils import utils
 
 logger = logging.getLogger(__name__)
 
