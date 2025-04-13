@@ -138,17 +138,39 @@ class MedicalDataProcessor:
     
     def process_batch(self, encounter_ids, batch_idx, save_dir):
         """Process a batch of encounters and save to disk."""
-        utils.ensure_directory(save_dir)
+        os.makedirs(save_dir, exist_ok=True)
         batch_data = []
-        
+
         for encounter_id in tqdm(encounter_ids, desc=f"Processing batch {batch_idx}"):
-            batch_data.extend(self.process_encounter(encounter_id))
-            
+            # Process each encounter
+            encounter_results = self.process_encounter(encounter_id)
+
+            # Verify and fix keys for each result
+            for result in encounter_results:
+                # Ensure all required keys are present
+                if 'image_paths' in result and not 'image_path' in result:
+                    # If we have image_paths but not image_path, use the first image path
+                    result['image_path'] = result['image_paths'][0] if result['image_paths'] else None
+
+                # Make sure all essential keys exist
+                required_keys = ['encounter_id', 'qid', 'query_text', 'image_path', 'answer_text']
+                if all(key in result for key in required_keys):
+                    batch_data.append(result)
+                else:
+                    missing_keys = [key for key in required_keys if key not in result]
+                    logger.warning(f"Skipping result for encounter {encounter_id}, missing keys: {missing_keys}")
+
+        # Log a sample of the data for debugging
+        if batch_data:
+            logger.info(f"Sample batch item keys: {list(batch_data[0].keys())}")
+            logger.info(f"Processed {len(batch_data)} valid examples in batch {batch_idx}")
+
+        # Save the batch data
         if batch_data:
             batch_file = os.path.join(save_dir, f"batch_{batch_idx}.pkl")
             with open(batch_file, 'wb') as f:
                 pickle.dump(batch_data, f)
-                
+
         return len(batch_data)
     
     def process_dataset(self, batch_size=5, limit=None, save_dir="processed_data"):

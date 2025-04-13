@@ -13,20 +13,16 @@ results/
 2025_dataset/valid/images_valid
 2025_dataset/test/images_test
 2025_dataset/train/final_df.csv
+2025_dataset/train/final_df_2.csv
 .ipynb_checkpoints/
 2025_dataset/test/images_test.zip
 2025_dataset/train/images_train.zip
 2025_dataset/valid/images_valid.zip
 .hf_cache/
-processed_data_inference/
-__pycache__/
-inference_results.csv
-evaluation_results/
-merged_model/
-models/fine_tuned_model/
-processed_data_train/
-processed_data_fine_tuned_model/
-processed_data_merged_model/
-processed_data_debug/
+**pycache**/
 gemma-product-description/
-2025_dataset/train/final_df_2.csv
+
+# Replaced paths for reorganized structure
+data/processed/
+models/
+evaluation_results/
