@@ -26,3 +26,7 @@ merged_model/
 models/fine_tuned_model/
 processed_data_train/
 processed_data_fine_tuned_model/
+processed_data_merged_model/
+processed_data_debug/
+gemma-product-description/
+2025_dataset/train/final_df_2.csv

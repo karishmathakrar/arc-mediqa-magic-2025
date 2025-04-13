@@ -4,7 +4,9 @@ import pandas as pd
 
 def main():
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    print(f"Base directory: {base_dir}")
     data_dir = os.path.join(base_dir, "2025_dataset", "train")
+    print(f"Data directory: {data_dir}")
 
     train_json_path = os.path.join(data_dir, "train.json")
     train_df = pd.read_json(train_json_path)
@@ -35,7 +37,7 @@ def main():
     questions_path = os.path.join(data_dir, "closedquestions_definitions_imageclef2025.json")
     with open(questions_path, "r", encoding="utf-8") as f:
         questions = json.load(f)
-    questions_df = pd.json_normalize(questions)[["qid", "question_en", "options_en"]]
+    questions_df = pd.json_normalize(questions)[["qid", "question_en", "options_en", "question_type_en", "question_category_en"]]
 
     cvqa_merged = cvqa_long.merge(questions_df, on="qid", how="left")
 
@@ -49,7 +51,7 @@ def main():
 
     final_df = cvqa_merged.merge(train_df, on="encounter_id", how="left")
 
-    output_path = os.path.join(data_dir, "final_df.csv")
+    output_path = os.path.join(data_dir, "final_df_2.csv")
     final_df.to_csv(output_path, index=False)
     print(f"Saved merged dataframe to {output_path}")
 

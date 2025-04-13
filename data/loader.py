@@ -46,14 +46,19 @@ class MedicalImageDataset(Dataset):
     def __getitem__(self, idx):
         example = self.examples[idx]
 
-        images = [Image.open(path).convert("RGB") for path in example['image_paths']]
+        # Load just the first image, ensure it's a single image
+        image_path = example['image_paths'][0]  # Take only the first image path
+        image = Image.open(image_path).convert("RGB")
+
+        # Use single image in a list to maintain compatibility with existing code
+        images = [image]  
 
         # Format query text the same way for both training and inference
         query_text = example['query_text']
         query_text += "\n\nCRITICAL INSTRUCTION: Only respond with an option if it is **clearly and unambiguously** supported by the image. If the image is unclear, incomplete, or could fit multiple answers, respond with: 'Not mentioned'. You must respond with the **exact text** of one option below. No numbers, no explanation. Given the medical context, err on the side of caution."
 
         # Use consistent system message
-        system_message = "You are a medical image analysis assistant. Your only task is to examine the provided clinical images and select the exact option text that best describes what you see. Note this is not the full context so if you are unsure or speculate other regions being affected, respond with 'Not mentioned'. You must respond with the full text of one of the provided options, exactly as written. Do not include any additional words or reasoning."
+        system_message = "You are a medical image analysis assistant. Your only task is to examine the provided clinical image and select the exact option text that best describes what you see. Note this is not the full context so if you are unsure or speculate other regions being affected, respond with 'Not mentioned'. You must respond with the full text of one of the provided options, exactly as written. Do not include any additional words or reasoning."
 
         if self.mode == "train":
             # Format for training (includes assistant's response)
@@ -66,7 +71,7 @@ class MedicalImageDataset(Dataset):
                     "role": "user",
                     "content": [
                         {"type": "text", "text": query_text},
-                        *[{"type": "image", "image": img} for img in images],
+                        {"type": "image", "image": images[0]},  # Only include one image
                     ],
                 },
                 {
@@ -93,7 +98,7 @@ class MedicalImageDataset(Dataset):
                     "role": "user",
                     "content": [
                         {"type": "text", "text": query_text},
-                        *[{"type": "image", "image": img} for img in images],
+                        {"type": "image", "image": images[0]},  # Only include one image
                     ],
                 },
             ]
@@ -122,10 +127,15 @@ def create_collate_fn(processor, mode="inference"):
         metadata = []
         
         for example in examples:
+            # Extract the single image from each example
             image_inputs = utils.process_vision_info(example["messages"])
             if not image_inputs:
                 logger.warning(f"Using dummy image — Example roles: {[m['role'] for m in example['messages']]}")
                 image_inputs = [utils.create_dummy_image()]
+            
+            # Ensure we only have one image per example
+            if len(image_inputs) > 1:
+                image_inputs = [image_inputs[0]]
             
             # Apply chat template - add generation prompt only for inference
             add_generation_prompt = (mode == "inference")
@@ -135,16 +145,28 @@ def create_collate_fn(processor, mode="inference"):
                 tokenize=False
             )
             
-            # Count image tokens explicitly
+            # Ensure the text contains exactly one image token
+            text = text.replace("<image><image>", "<image>")
+            text = text.replace("<image><image><image>", "<image>")
+            text = text.replace("<image> <image>", "<image>")
+            
+            # Count image tokens to verify
             num_image_tokens = text.count("<image>")
             
-            # Ensure number of images matches tokens
-            if len(image_inputs) < num_image_tokens:
-                needed_dummies = num_image_tokens - len(image_inputs)
-                image_inputs += [utils.create_dummy_image()] * needed_dummies
-            elif len(image_inputs) > num_image_tokens:
-                # Never truncate to zero
-                image_inputs = image_inputs[:max(1, num_image_tokens)]
+            # Ensure number of images matches tokens (should be 1)
+            if num_image_tokens == 0:
+                # If no image tokens, append dummy text with image token
+                logger.warning("No image token found in template output")
+                text = text.replace("<end_of_turn>", "<image><end_of_turn>", 1)
+                num_image_tokens = 1
+            elif num_image_tokens > 1:
+                # If multiple image tokens, replace with a single one
+                logger.warning(f"Multiple image tokens ({num_image_tokens}) found in template output")
+                # Use regex to replace all but the first image token
+                import re
+                text = re.sub(r"<image>", "<image>", text, count=1)
+                text = re.sub(r"<image>", "", text)
+                num_image_tokens = 1
             
             texts.append(text.strip())
             images_per_example.append(image_inputs)
@@ -194,7 +216,6 @@ def create_collate_fn(processor, mode="inference"):
         return batch
     
     return collate_fn
-
 
 def create_dataloader(dataset, processor, batch_size=1, shuffle=False, mode="inference"):
     """

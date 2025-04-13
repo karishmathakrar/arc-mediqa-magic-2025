@@ -40,23 +40,22 @@ def create_dummy_image(size=(224, 224), color='black'):
 
 def process_vision_info(messages):
     """
-    Extract images from a structured messages list.
-    Returns a list of PIL Image objects in RGB format.
+    Extract only the first image from a structured messages list.
+    Returns a list containing one PIL Image object in RGB format.
     
     Args:
         messages: List of message objects
         
     Returns:
-        List of PIL images
+        List with a single PIL image
     """
-    image_inputs = []
-    
     for msg in messages:
         content = msg.get("content", [])
         
         if not isinstance(content, list):
             content = [content]
         
+        # Look for the first image in content
         for element in content:
             if isinstance(element, dict) and (
                 "image" in element or element.get("type") == "image"
@@ -67,10 +66,11 @@ def process_vision_info(messages):
                     image = element
                 
                 if hasattr(image, 'convert'):
-                    image = image.convert("RGB")
-                    image_inputs.append(image)
+                    # Return a list with just one image in RGB format
+                    return [image.convert("RGB")]
     
-    return image_inputs
+    # Return empty list if no images found
+    return []
 
 def load_json_file(file_path):
     """Load a JSON file."""

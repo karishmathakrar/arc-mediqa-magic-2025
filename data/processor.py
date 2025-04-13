@@ -71,70 +71,69 @@ class MedicalDataProcessor:
     
     def process_encounter(self, encounter_id):
         """Process a single encounter and its questions on-the-fly."""
-        
+
         # Get encounter data
         encounter_data = self.get_encounter_data(encounter_id)
         if not encounter_data:
             return []
-        
+
         # Get CVQA data (answers)
         cvqa_data = self.get_cvqa_data(encounter_id)
         if not cvqa_data:
             return []
-        
+
         results = []
-        
+
         # Process each question for this encounter
         for qid, answer_index in cvqa_data.items():
             if qid == "encounter_id":
                 continue
-                
+
             # Get question data
             question_data = self.get_question_data(qid)
             if not question_data:
                 continue
-            
-            # Create image paths
-            image_paths = [os.path.join(self.images_dir, img_id) 
-                          for img_id in encounter_data["image_ids"]]
-            
-            # Verify images exist
-            valid_images = []
-            for img_path in image_paths:
-                if os.path.exists(img_path) and utils.is_valid_image(img_path):
-                    valid_images.append(img_path)
-                        
+
+            # Create image paths - only use the first image
+            if encounter_data["image_ids"]:
+                # Take only the first image ID
+                first_image_id = encounter_data["image_ids"][0]
+                image_path = os.path.join(self.images_dir, first_image_id)
+
+                # Verify the image exists
+                if os.path.exists(image_path) and utils.is_valid_image(image_path):
+                    valid_images = [image_path]
+                else:
+                    valid_images = []
+            else:
+                valid_images = []
+
             if not valid_images:
                 continue
-                
+
             # Get answer text
             options = question_data.get("options_en", [])
             try:
                 answer_text = options[answer_index]
             except (IndexError, TypeError):
                 answer_text = None
-                
+
             # Format options text
             options_text = ", ".join([f"{i+1}. {opt}" for i, opt in enumerate(options)])
-            
+
             # Combine context
-#             clinical_context = f"{encounter_data.get('query_title_en', '')}: {encounter_data.get('query_content_en', '')}"
-#             metadata = f"Type: {question_data.get('question_type_en', '')}, Category: {question_data.get('question_category_en', '')}"
-#             query_text = f"Clinical Context: {clinical_context}\nQuestion: Based on the image, {question_data.get('question_en', '')}\nQuestion Metadata: {metadata}\nOptions: {options_text}"
-            
             metadata = f"Type: {question_data.get('question_type_en', '')}, Category: {question_data.get('question_category_en', '')}"
             query_text = f"Question: Based on the image, {question_data.get('question_en', '')}\nQuestion Metadata: {metadata}\nOptions: {options_text}"
 
-            
             results.append({
                 "encounter_id": encounter_id,
                 "qid": qid,
                 "query_text": query_text,
-                "image_paths": valid_images,
+                "image_paths": valid_images,  # This will be a list with only one image path
                 "answer_text": answer_text,
                 "answer_index": answer_index
             })
-        
+
         return results
     
     def process_batch(self, encounter_ids, batch_idx, save_dir):
