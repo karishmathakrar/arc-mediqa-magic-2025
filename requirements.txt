@@ -1,9 +1,66 @@
+# Core Dependencies - Install these first
+pyyaml>=5.1
+regex!=2019.12.17
+requests>=2.32.2
+tokenizers<0.22,>=0.21
+absl-py>=0.4
+grpcio>=1.48.2
+markdown>=2.6.8
+tensorboard-data-server<0.8.0,>=0.7.0
+werkzeug>=1.0.1
+pytz>=2020.1
+tzdata>=2022.7
+dill<0.3.9,>=0.3.0
+multiprocess<0.70.17
+xxhash
+aiohttp
+pyarrow>=15.0.0
+rich
+
+# Pre-commit Dependencies
+cfgv>=2.0.0
+identify>=1.0.0
+nodeenv>=0.11.1
+virtualenv>=20.10.0
+
+# Core Libraries
+torch==2.2.2+cu124 --extra-index-url https://download.pytorch.org/whl/cu124
+torchvision==0.17.2+cu124 --extra-index-url https://download.pytorch.org/whl/cu124
+torchaudio==2.2.2+cu124 --extra-index-url https://download.pytorch.org/whl/cu124
+tensorboard
+
+# CUDA Dependencies
+nvidia-cudnn-cu12
+
+# Gemma-Specific Dependencies
+git+https://github.com/huggingface/transformers@v4.49.0-Gemma-3
+datasets==3.3.2
+accelerate==1.4.0
+evaluate==0.4.3
+bitsandbytes==0.45.3
+trl==0.15.2
+peft==0.14.0
+sentencepiece
+safetensors
+scipy
+huggingface_hub
+
+# Protobuf (Ensures Google AI Compatibility)
+protobuf<6.0.0
+
+# Additional Dependencies
 pandas
-pillow
+pillow==11.1.0
 matplotlib
 google-generativeai
-python-dotenv 
+python-dotenv
 tqdm
 seaborn
-FlagEmbedding
 pre-commit
+
+# FlagEmbedding (Avoids Dependency Conflicts)
+FlagEmbedding --no-deps
+ipywidgets
+
+# create .env file with hf token
+echo 'HF_TOKEN=INSERT' > .env

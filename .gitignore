@@ -1,15 +1,28 @@
+# Python virtual environments
 .venv/
 .env
-2024_dataset/images/
-2024_dataset/train_df_cleaned.csv
-2024_dataset/train_df_with_combined_features.csv
-2024_dataset/train_df_with_embeddings.pkl
-2024_dataset/train_df_with_image_stats.pkl
-2024_dataset/train_df_with_metadata.pkl
-2024_dataset/train_df_final.pkl
-archives/
-results/
-2025_dataset/train/images_train
-2025_dataset/valid/images_valid
-2025_dataset/test/images_test
+**/__pycache__/
+*.py[cod]
+*$py.class
+
+# Dataset files
+2025_dataset/train/images_train/
+2025_dataset/validation/images_validation/
+2025_dataset/test/images_test/
+2025_dataset/*.zip
 2025_dataset/train/final_df.csv
+2025_dataset/train/final_df_2.csv
+2025_dataset/valid/images_valid/
+
+# Processed data
+processed_data/
+outputs/
+
+# Model caches
+.hf_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Additional
+archives/

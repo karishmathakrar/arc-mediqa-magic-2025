@@ -1,0 +1,74 @@
+{
+  "CQID010": {
+    "single spot": 0,
+    "limited area": 1,
+    "widespread": 2,
+    "Not mentioned": 3
+  },
+  "CQID011": {
+    "head": 0,
+    "neck": 1,
+    "upper extremities": 2,
+    "lower extremities": 3,
+    "chest/abdomen": 4,
+    "back": 5,
+    "other (please specify)": 6,
+    "Not mentioned": 7
+  },
+  "CQID012": {
+    "size of thumb nail": 0,
+    "size of palm": 1,
+    "larger area": 2,
+    "Not mentioned": 3
+  },
+  "CQID015": {
+    "within hours": 0,
+    "within days": 1,
+    "within weeks": 2,
+    "within months": 3,
+    "over a year": 4,
+    "multiple years": 5,
+    "Not mentioned": 6
+  },
+  "CQID020": {
+    "raised or bumpy": 0,
+    "flat": 1,
+    "skin loss or sunken": 2,
+    "thick or raised": 3,
+    "thin or close to the surface": 4,
+    "warty": 5,
+    "crust": 6,
+    "scab": 7,
+    "weeping": 8,
+    "Not mentioned": 9
+  },
+  "CQID025": {
+    "yes": 0,
+    "no": 1,
+    "Not mentioned": 2
+  },
+  "CQID034": {
+    "normal skin color": 0,
+    "pink": 1,
+    "red": 2,
+    "brown": 3,
+    "blue": 4,
+    "purple": 5,
+    "black": 6,
+    "white": 7,
+    "combination (please specify)": 8,
+    "hyperpigmentation": 9,
+    "hypopigmentation": 10,
+    "Not mentioned": 11
+  },
+  "CQID035": {
+    "single": 0,
+    "multiple (please specify)": 1,
+    "Not mentioned": 2
+  },
+  "CQID036": {
+    "smooth": 0,
+    "rough": 1,
+    "Not mentioned": 2
+  }
+}
