@@ -1,58 +1,164 @@
-## Setup Instructions
+# MEDIQA-Magic: Medical Image Question Answering
 
-1. **Download data from this google folder:**
-https://drive.google.com/file/d/1VOIgXVJy1c8lWFdY63lCyyztY1PS-Bh1/view?usp=sharing
-Create an images folder within the 2024_dataset folder and place the train, test, valid folders within images. 
+This repository contains code for the MEDIQA challenge, which involves answering medical questions based on clinical images using multi-modal language models.
 
-2. **Make sure you have Python 3.10 installed**  
+## Project Structure
 
-3. **Create a .venv**
 ```
-source .venv/bin/activate
+mediqa-magic-v2/
+├── config.py               # Configuration settings
+├── preprocess.py           # Data preprocessing script
+├── train.py                # Training script
+├── inference.py            # Inference script
+├── evaluate.py             # Evaluation script
+├── utils.py                # Utility functions
+├── run.py                  # One-click pipeline script
+├── evaluation/             # Conference-provided evaluation scripts
+├── 2025_dataset/           # Raw data (not included in repo)
+├── processed_data/         # Processed data (generated)
+└── outputs/                # Model outputs and evaluation results
 ```
 
-4. **Install packages in requirements.txt**
+## Setup
+
+1. Clone the repository:
 ```bash
+git clone https://github.com/yourusername/mediqa-magic-v2.git
+cd mediqa-magic-v2
+```
+
+2. Create a virtual environment and install dependencies:
+```bash
+python -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-5. **Create Gemini API key and add the following line to the .env file**
+3. Create a `.env` file with your HuggingFace token:
 ```
-API_KEY=<your key here>
+HF_TOKEN=your_huggingface_token_here
 ```
 
-## Training
-To finetune the model:
-python train.py --data_dir 2025_dataset/train --output_dir models/fine_tuned_model --limit 1 --reprocess
+## Workflow
+
+### 1. Preprocess the Data
+
+Preprocess data for training:
+```bash
+python preprocess.py --mode train
+```
+
+Preprocess data for inference:
+```bash
+python preprocess.py --mode inference
+```
+
+Using validation data: 
+```bash
+python preprocess.py --mode inference --data_dir 2025_dataset/validation --output_dir processed_data/validation
+```
+
+Options:
+- `--limit N`: Limit to N examples
+- `--reprocess`: Force reprocessing even if data exists
+- `--batch_size N`: Process in batches of N examples
+- `--use_single_image`: Use only the first image for each encounter (default: True)
+
+### 2. Train the Model
+
+Fine-tune the model using LoRA:
+```bash
+python train.py
+```
+
+Options:
+- `--model_id MODEL_ID`: Base model ID (default: "google/gemma-3-4b-it")
+- `--batch_size N`: Batch size for training
+- `--grad_accum N`: Gradient accumulation steps
+- `--epochs N`: Number of training epochs
+- `--lr RATE`: Learning rate
+- `--skip_merge`: Skip merging LoRA weights with base model
+
+### 3. Run Inference
+
+Run inference with both base and fine-tuned models:
+```bash
+python inference.py
+```
+
+To do inference on validation data: 
+python inference.py --processed_dir processed_data/validation --output_dir outputs/validation
+
+Options:
+- `--skip_base`: Skip inference with base model
+- `--skip_finetuned`: Skip inference with fine-tuned model
+- `--limit N`: Limit to N examples
+- `--max_new_tokens N`: Maximum new tokens to generate
+- `--temperature T`: Sampling temperature
+
+### 4. Evaluate Results
+
+Compare the performance of base and fine-tuned models:
+```bash
+python evaluate.py
+```
+
+To do evaluation on validation data: 
+python evaluate.py --reference_file 2025_dataset/validation/validation_cvqa.json --base_prediction_file outputs/validation/base_model/results.json --finetuned_prediction_file outputs/validation/finetuned_model/results.json
+
+Options:
+- `--skip_base`: Skip evaluation of base model
+- `--skip_finetuned`: Skip evaluation of fine-tuned model
 
 
-## Inference
-
-### Combined inference + evaluation
-
-1) chmod +x run_full_evaluation.sh
-
-2) Run with baseline model and no limit:
-./run_full_evaluation.sh
-
-OR run with fine-tuned model and limit of 1:
-OLD: ./run_full_evaluation.sh --model_path models/fine_tuned_model --limit 1 --reprocess
-NEW: ./run_full_evaluation.sh --model_path merged_model --limit 1 --reprocess
-
-OR run with fine-tuned model and custom output directory:
-OLD: ./run_full_evaluation.sh --model_path models/fine_tuned_model --output_dir evaluation_results_finetuned --reprocess
-NEW: ./run_full_evaluation.sh --model_path merged_model --output_dir evaluation_results_finetuned
+### TLDR of steps above; 
+1) python preprocess.py --mode train --reprocess
+2) python train.py
+3) python preprocess.py --mode inference --data_dir 2025_dataset/validation --output_dir processed_data/validation
+4) python inference.py --processed_dir processed_data/validation --output_dir outputs/validation
+5) python evaluate.py --reference_file 2025_dataset/validation/validation_cvqa.json --base_prediction_file outputs/validation/base_model/results.json --finetuned_prediction_file outputs/validation/finetuned_model/results.json
 
 
-### Development/testing + evaluation
+### 5. Run the Complete Pipeline
 
-1) For Gemma inference using baseline model:
-python inference.py --data_dir 2025_dataset/train --limit 1 --reprocess --output_file evaluation_results/inference_results.csv --json_output evaluation_results/data_cvqa_sys.json --indexed_json_output evaluation_results/data_cvqa_sys_indices.json
+To run the entire pipeline with a single command:
+```bash
+python run.py --use_validation
+```
 
-OR for Gemma inference using finetuned model:
-python inference.py --data_dir 2025_dataset/train --model_id merged_model --limit 1 --reprocess --output_file evaluation_results/inference_results_finetuned.csv --json_output evaluation_results/data_cvqa_sys_finetuned.json --indexed_json_output evaluation_results/data_cvqa_sys_indices_finetuned.json
+Options:
+- `--skip_preprocessing`: Skip data preprocessing
+- `--skip_training`: Skip model training
+- `--skip_inference`: Skip model inference
+- `--skip_evaluation`: Skip result evaluation
+- `--limit N`: Limit to N examples for faster testing
 
-2) Run evaluation on converted results: 
-python run_cvqa_eval.py 2025_dataset/train/train_cvqa.json evaluation_results/data_cvqa_sys_indices.json evaluation_results --reprocess
 
-OR python run_cvqa_eval.py 2025_dataset/train/train_cvqa.json evaluation_results/data_cvqa_sys_indices_finetuned.json evaluation_results --reprocess
+## Output Files
+
+After running the pipeline, you'll find the following outputs:
+
+1. **Processed Data**:
+   - `processed_data/train/`: Processed training data
+   - `processed_data/inference/`: Processed inference data
+
+2. **Models**:
+   - `outputs/finetuned_model/`: Fine-tuned model with LoRA weights
+   - `outputs/merged_model/`: Merged model (base + LoRA weights)
+
+3. **Inference Results**:
+   - `outputs/base_model/results.json`: Base model predictions
+   - `outputs/finetuned_model/results.json`: Fine-tuned model predictions
+
+4. **Evaluation Results**:
+   - `outputs/comparison/model_comparison.json`: Detailed comparison metrics
+   - `outputs/comparison/model_comparison.md`: Markdown report with tables
+   - `outputs/base_model/evaluation/scores_cvqa.json`: Base model evaluation
+   - `outputs/finetuned_model/evaluation/scores_cvqa.json`: Fine-tuned model evaluation
+
+## Reference
+
+If you use this code, please cite the original MEDIQA challenge paper:
+```
+[Citation information will go here]
+```
