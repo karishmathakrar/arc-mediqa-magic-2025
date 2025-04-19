@@ -37,6 +37,8 @@ pip install -r requirements.txt
 3. Create a `.env` file with your HuggingFace token:
 ```
 HF_TOKEN=your_huggingface_token_here
+
+PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 ```
 
 ## Workflow
