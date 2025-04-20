@@ -113,6 +113,13 @@ Options:
 - `--skip_finetuned`: Skip evaluation of fine-tuned model
 
 
+UPDATED:
+Run evaluation in terminal with the following command (note, json file name will need updating when doing this): 
+```
+python evaluate_new.py outputs/data_cvqa_sys_test.json
+OR python evaluate_new.py outputs/data_cvqa_sys.json
+```
+
 ### TLDR of steps above; 
 1) python preprocess.py --mode train --reprocess
 2) python train.py
