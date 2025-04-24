@@ -67,3 +67,6 @@ echo 'HF_TOKEN=INSERT' > .env
 
 Recent additions
 pip install -U google-genai google-ai-generativelanguage==0.6.15 google-api-core google-api-python-client
+pip install git+https://github.com/huggingface/transformers accelerate
+qwen-vl-utils
+pip install ir-datasets sentence-transformers
