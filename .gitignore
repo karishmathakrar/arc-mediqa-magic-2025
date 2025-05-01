@@ -26,3 +26,7 @@ outputs/
 
 # Additional
 archives/
+
+nltk_data/
+
+knowledge_db/
