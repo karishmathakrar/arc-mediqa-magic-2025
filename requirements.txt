@@ -16,19 +16,23 @@ cbor==1.0.0
 certifi==2025.1.31
 cfgv==3.4.0
 charset-normalizer==3.4.1
-comm==0.2.2
+click==8.1.8
+comm==0.2.2a
 contourpy==1.3.1
 cycler==0.12.1
 datasets==3.3.2
 debugpy==1.8.13
 decorator==5.2.1
+deprecation==2.1.0
 dill==0.3.8
 distlib==0.3.9
+einops==0.8.1
 evaluate==0.4.3
 exceptiongroup==1.2.2
 executing==2.2.0
 filelock==3.13.1
 FlagEmbedding==1.3.4
+flash_attn==2.7.4.post1
 fonttools==4.56.0
 frozenlist==1.5.0
 fsspec==2024.6.1
@@ -60,7 +64,9 @@ Jinja2==3.1.3
 joblib==1.4.2
 jupyter_client==8.6.3
 jupyter_core==5.7.2
+jupyterlab_widgets==3.0.14
 kiwisolver==1.4.8
+lancedb==0.22.0
 lxml==5.4.0
 lz4==4.4.4
 Markdown==3.7
@@ -74,6 +80,7 @@ multidict==6.2.0
 multiprocess==0.70.16
 nest-asyncio==1.6.0
 networkx==3.3
+nltk==3.9.1
 nodeenv==1.9.1
 numpy==2.1.2
 nvidia-cublas-cu12==12.4.5.8
@@ -89,6 +96,7 @@ nvidia-cusparselt-cu12==0.6.2
 nvidia-nccl-cu12==2.21.5
 nvidia-nvjitlink-cu12==12.4.127
 nvidia-nvtx-cu12==12.4.127
+overrides==7.7.0
 packaging==24.2
 pandas==2.2.3
 parso==0.8.4
@@ -117,6 +125,7 @@ pytz==2025.2
 PyYAML==6.0.2
 pyzmq==26.3.0
 qwen-vl-utils==0.0.11
+rank-bm25==0.2.2
 regex==2024.11.6
 requests==2.32.3
 rich==13.9.4
@@ -158,6 +167,7 @@ warc3-wet-clueweb09==0.2.5
 wcwidth==0.2.13
 websockets==15.0.1
 Werkzeug==3.1.3
+widgetsnbextension==4.0.14
 xxhash==3.5.0
 yarl==1.18.3
 zlib-state==0.1.9

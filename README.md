@@ -1,27 +1,22 @@
 # MEDIQA-Magic: Medical Image Question Answering
 
-This repository contains code for the MEDIQA challenge, which involves answering medical questions based on clinical images using multi-modal language models.
+This repository contains code for dermatology image analysis and medical question answering using multi-modal large language models.
 
 ## Project Structure
 
 ```
 mediqa-magic-v2/
-├── config.py               # Configuration settings
-├── preprocess.py           # Data preprocessing script
-├── train.py                # Training script
-├── inference.py            # Inference script
-├── evaluate.py             # Evaluation script
-├── utils.py                # Utility functions
-├── run.py                  # One-click pipeline script
-├── evaluation/             # Conference-provided evaluation scripts
-├── 2025_dataset/           # Raw data (not included in repo)
-├── processed_data/         # Processed data (generated)
-└── outputs/                # Model outputs and evaluation results
+├── 01-model-finetuning-inference-base.ipynb  # Core vision-language model training and inference
+├── 02-reasoning-layer.ipynb                  # Reasoning layer implementation
+├── 03-agentic-rag.ipynb                      # Diagnosis-based knowledge retrieval system
+├── knowledge_db/                             # Vector database for dermatology knowledge
+├── 2025_dataset/                             # Dataset directories (train/valid/test)
+└── outputs/                                  # Model outputs and prediction results
 ```
 
 ## Setup
 
-1. Clone the repository:
+1. Clone the repository and navigate to the directory (will be made publicly available after May 30th):
 ```bash
 git clone https://github.com/yourusername/mediqa-magic-v2.git
 cd mediqa-magic-v2
@@ -34,140 +29,68 @@ source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-3. Create a `.env` file with your HuggingFace token:
+3. Create a `.env` file with your API tokens:
 ```
 HF_TOKEN=your_huggingface_token_here
-
-PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
+API_KEY=your_gemini_api_key_here
 ```
 
-## Workflow
+## Pipeline Components
 
-### 1. Preprocess the Data
+### 1. Model Fine-tuning and Inference Base (01-model-finetuning-inference-base.ipynb)
 
-Preprocess data for training:
-```bash
-python preprocess.py --mode train
-```
+This notebook contains:
+- Dataset processing and preparation
+- Vision-language model loading (Llama, Gemma, Qwen)
+- LoRA fine-tuning configuration
+- Training implementation
+- Inference functionality for both base and fine-tuned models
+- Prediction aggregation and formatting
 
-Preprocess data for inference:
-```bash
-python preprocess.py --mode inference
-```
+### 2. Reasoning Layer (02-reasoning-layer.ipynb)
 
-Using validation data: 
-```bash
-python preprocess.py --mode inference --data_dir 2025_dataset/validation --output_dir processed_data/validation
-```
+This notebook implements:
+- Image analysis for dermatological features
+- Clinical context extraction from patient data
+- Evidence integration from visual and textual sources
+- Reasoning engine to determine accurate answers
+- Final prediction formatting for evaluation
 
-Options:
-- `--limit N`: Limit to N examples
-- `--reprocess`: Force reprocessing even if data exists
-- `--batch_size N`: Process in batches of N examples
-- `--use_single_image`: Use only the first image for each encounter (default: True)
+### 3. Agentic RAG System (03-agentic-rag.ipynb)
 
-### 2. Train the Model
+This notebook provides:
+- Knowledge base management with LanceDB
+- Diagnosis extraction from clinical data
+- Query generation based on diagnoses
+- Hybrid search with semantic and keyword components
+- Self-reflection mechanisms for answer improvement
+- Confidence-based revision cycles
 
-Fine-tune the model using LoRA:
-```bash
-python train.py
-```
+## Running the Pipeline
 
-Options:
-- `--model_id MODEL_ID`: Base model ID (default: "google/gemma-3-4b-it")
-- `--batch_size N`: Batch size for training
-- `--grad_accum N`: Gradient accumulation steps
-- `--epochs N`: Number of training epochs
-- `--lr RATE`: Learning rate
-- `--skip_merge`: Skip merging LoRA weights with base model
+You can run the components in order through Jupyter notebook environments. Each notebook is designed to be self-contained but builds upon the outputs of previous components:
 
-### 3. Run Inference
-
-Run inference with both base and fine-tuned models:
-```bash
-python inference.py
-```
-
-To do inference on validation data: 
-python inference.py --processed_dir processed_data/validation --output_dir outputs/validation
-
-Options:
-- `--skip_base`: Skip inference with base model
-- `--skip_finetuned`: Skip inference with fine-tuned model
-- `--limit N`: Limit to N examples
-- `--max_new_tokens N`: Maximum new tokens to generate
-- `--temperature T`: Sampling temperature
-
-### 4. Evaluate Results
-
-Compare the performance of base and fine-tuned models:
-```bash
-python evaluate.py
-```
-
-To do evaluation on validation data: 
-python evaluate.py --reference_file 2025_dataset/validation/validation_cvqa.json --base_prediction_file outputs/validation/base_model/results.json --finetuned_prediction_file outputs/validation/finetuned_model/results.json
-
-Options:
-- `--skip_base`: Skip evaluation of base model
-- `--skip_finetuned`: Skip evaluation of fine-tuned model
-
-
-UPDATED:
-Run evaluation in terminal with the following command (note, json file name will need updating when doing this): 
-```
-python evaluate_new.py outputs/data_cvqa_sys_test.json
-OR python evaluate_new.py outputs/data_cvqa_sys.json
-```
-
-### TLDR of steps above; 
-1) python preprocess.py --mode train --reprocess
-2) python train.py
-3) python preprocess.py --mode inference --data_dir 2025_dataset/validation --output_dir processed_data/validation
-4) python inference.py --processed_dir processed_data/validation --output_dir outputs/validation
-5) python evaluate.py --reference_file 2025_dataset/validation/validation_cvqa.json --base_prediction_file outputs/validation/base_model/results.json --finetuned_prediction_file outputs/validation/finetuned_model/results.json
-
-
-### 5. Run the Complete Pipeline
-
-To run the entire pipeline with a single command:
-```bash
-python run.py --use_validation
-```
-
-Options:
-- `--skip_preprocessing`: Skip data preprocessing
-- `--skip_training`: Skip model training
-- `--skip_inference`: Skip model inference
-- `--skip_evaluation`: Skip result evaluation
-- `--limit N`: Limit to N examples for faster testing
-
+1. First run `01-model-finetuning-inference-base.ipynb` to train models and generate base predictions
+2. Then run `02-reasoning-layer.ipynb` to apply reasoning to model predictions
+3. Finally run `03-agentic-rag.ipynb` to incorporate medical knowledge and reasoning
 
 ## Output Files
 
-After running the pipeline, you'll find the following outputs:
+The pipeline produces these key outputs:
 
-1. **Processed Data**:
-   - `processed_data/train/`: Processed training data
-   - `processed_data/inference/`: Processed inference data
+- Fine-tuned model checkpoints in `outputs/finetuned-model/`
+- Merged models in `outputs/merged/`
+- Prediction files in `outputs/` with prefixes:
+  - `aggregated_predictions_` (validation set)
+  - `aggregated_test_predictions_` (test set)
+  - `data_cvqa_sys_` (formatted for evaluation)
 
-2. **Models**:
-   - `outputs/finetuned_model/`: Fine-tuned model with LoRA weights
-   - `outputs/merged_model/`: Merged model (base + LoRA weights)
+## Requirements
 
-3. **Inference Results**:
-   - `outputs/base_model/results.json`: Base model predictions
-   - `outputs/finetuned_model/results.json`: Fine-tuned model predictions
+Key dependencies include:
+- PyTorch and transformers for model training
+- Sentence-transformers and LanceDB for vector search
+- Google's Generative AI for reasoning components
+- Various utilities for data processing and evaluation
 
-4. **Evaluation Results**:
-   - `outputs/comparison/model_comparison.json`: Detailed comparison metrics
-   - `outputs/comparison/model_comparison.md`: Markdown report with tables
-   - `outputs/base_model/evaluation/scores_cvqa.json`: Base model evaluation
-   - `outputs/finetuned_model/evaluation/scores_cvqa.json`: Fine-tuned model evaluation
-
-## Reference
-
-If you use this code, please cite the original MEDIQA challenge paper:
-```
-[Citation information will go here]
-```
+Refer to requirements.txt for the complete dependency list.
