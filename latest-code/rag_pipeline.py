@@ -24,6 +24,7 @@ from sentence_transformers import SentenceTransformer, CrossEncoder
 from rank_bm25 import BM25Okapi
 import torch
 import random
+from typing import Dict, List, Tuple, Optional, Any
 
 
 class Args:
@@ -57,7 +58,7 @@ class Args:
         
         self.model_type = "finetuned" if self.use_finetuning else "base"
         
-        self.gemini_model = "gemini-2.5-flash-preview-04-17"
+        self.gemini_model = "gemini-2.0-flash-exp-2025-01-29"
         
         self.max_reflection_cycles = 2
         self.confidence_threshold = 0.75
@@ -959,17 +960,304 @@ class AgenticDermatologyPipeline:
         self.args = args
         
         print("Initializing knowledge base...")
-        self.kb_manager = KnowledgeBaseManager()
+        self.kb_manager = KnowledgeBaseManager(args)
         
         self.diagnosis_extractor = DiagnosisExtractor()
         
-        self.query_generator = DiagnosisBasedQueryGenerator(self.client)
+        self.query_generator = DiagnosisBasedQueryGenerator(self.client, args)
         
         self.knowledge_retriever = DiagnosisBasedKnowledgeRetriever(
             self.kb_manager,
             self.query_generator,
-            self.diagnosis_extractor
+            self.diagnosis_extractor,
+            args
         )
+    
+    def analyze_images(self, images: List[str], query_context: str) -> Dict[str, Any]:
+        """Analyze images and extract structured information."""
+        if not images:
+            return {"error": "No images provided"}
+        
+        prompt = f"""
+        Analyze these dermatology images and provide structured output:
+        
+        Context: {query_context}
+        
+        Please provide a detailed analysis in the following JSON format:
+        {{
+            "individual_images": [
+                {{
+                    "image_index": 0,
+                    "observations": {{
+                        "SITE_LOCATION": "affected body parts",
+                        "LESION_COLOR": "colors observed",
+                        "SKIN_DESCRIPTION": "texture, appearance details",
+                        "LESION_COUNT": "number of lesions",
+                        "SIZE": "approximate sizes"
+                    }}
+                }}
+            ],
+            "aggregated_analysis": {{
+                "SITE_LOCATION": "all affected areas combined",
+                "LESION_COLOR": "all colors observed",
+                "SKIN_DESCRIPTION": "overall skin appearance",
+                "LESION_COUNT": "total count",
+                "SIZE": "size range",
+                "OVERALL_IMPRESSION": "clinical impression and possible diagnoses"
+            }}
+        }}
+        """
+        
+        try:
+            # Load images
+            image_parts = []
+            for img_path in images[:5]:  # Limit to 5 images
+                if os.path.exists(img_path):
+                    img = Image.open(img_path)
+                    image_parts.append(img)
+            
+            response = self.client.models.generate_content(
+                model=self.args.gemini_model if self.args else "gemini-2.0-flash-exp-2025-01-29",
+                contents=[prompt] + image_parts
+            )
+            
+            return parse_json_response(response.text)
+            
+        except Exception as e:
+            print(f"Error analyzing images: {e}")
+            return {"error": str(e)}
+    
+    def extract_clinical_context(self, query_context: str) -> Dict[str, Any]:
+        """Extract structured clinical context from query."""
+        prompt = f"""
+        Extract structured clinical information from this query:
+        
+        {query_context}
+        
+        Provide output in JSON format:
+        {{
+            "structured_clinical_context": {{
+                "HISTORY": "relevant history mentioned",
+                "SYMPTOMS": "symptoms described",
+                "DURATION": "time course mentioned",
+                "MEDICATIONS": "any medications mentioned",
+                "DIAGNOSTIC_CONSIDERATIONS": "possible diagnoses based on context"
+            }}
+        }}
+        """
+        
+        try:
+            response = self.client.models.generate_content(
+                model=self.args.gemini_model if self.args else "gemini-2.0-flash-exp-2025-01-29",
+                contents=prompt
+            )
+            
+            return parse_json_response(response.text)
+            
+        except Exception as e:
+            print(f"Error extracting clinical context: {e}")
+            return {"error": str(e)}
+    
+    def integrate_evidence(self, image_analysis: Dict, clinical_context: Dict, 
+                          model_predictions: Dict, retrieved_knowledge: Dict) -> Dict[str, Any]:
+        """Integrate all evidence sources."""
+        prompt = f"""
+        Integrate the following evidence sources for dermatological analysis:
+        
+        1. Image Analysis:
+        {json.dumps(image_analysis, indent=2)}
+        
+        2. Clinical Context:
+        {json.dumps(clinical_context, indent=2)}
+        
+        3. Model Predictions:
+        {json.dumps(model_predictions, indent=2)}
+        
+        4. Retrieved Knowledge:
+        {json.dumps(retrieved_knowledge, indent=2)}
+        
+        Provide integrated analysis in JSON format:
+        {{
+            "integrated_findings": {{
+                "primary_features": "key features from all sources",
+                "diagnostic_confidence": "confidence level based on evidence",
+                "supporting_evidence": "evidence supporting diagnosis",
+                "conflicting_evidence": "any conflicts between sources",
+                "recommended_answer": "most likely answer based on all evidence"
+            }}
+        }}
+        """
+        
+        try:
+            response = self.client.models.generate_content(
+                model=self.args.gemini_model if self.args else "gemini-2.0-flash-exp-2025-01-29",
+                contents=prompt
+            )
+            
+            return parse_json_response(response.text)
+            
+        except Exception as e:
+            print(f"Error integrating evidence: {e}")
+            return {"error": str(e)}
+    
+    def reason_with_reflection(self, question_text: str, options: List[str], 
+                              integrated_evidence: Dict, cycle: int = 0) -> Dict[str, Any]:
+        """Perform reasoning with self-reflection."""
+        prompt = f"""
+        Question: {question_text}
+        Options: {', '.join(options)}
+        
+        Integrated Evidence:
+        {json.dumps(integrated_evidence, indent=2)}
+        
+        Reasoning Cycle: {cycle + 1}
+        
+        Analyze this dermatology question step by step:
+        
+        1. What is the question specifically asking?
+        2. What evidence supports each option?
+        3. Which option is most strongly supported?
+        4. What is your confidence level (0-1)?
+        
+        Provide your analysis in JSON format:
+        {{
+            "reasoning": {{
+                "question_analysis": "what the question asks",
+                "option_evidence": {{
+                    "option1": "evidence for/against",
+                    "option2": "evidence for/against"
+                }},
+                "conclusion": "selected answer",
+                "confidence": 0.85,
+                "areas_of_uncertainty": ["list of uncertainties"]
+            }}
+        }}
+        """
+        
+        try:
+            response = self.client.models.generate_content(
+                model=self.args.gemini_model if self.args else "gemini-2.0-flash-exp-2025-01-29",
+                contents=prompt
+            )
+            
+            return parse_json_response(response.text)
+            
+        except Exception as e:
+            print(f"Error in reasoning: {e}")
+            return {"error": str(e)}
+    
+    def self_reflect(self, reasoning: Dict, integrated_evidence: Dict) -> Dict[str, Any]:
+        """Perform self-reflection on reasoning."""
+        prompt = f"""
+        Review this reasoning for potential errors or improvements:
+        
+        Reasoning:
+        {json.dumps(reasoning, indent=2)}
+        
+        Evidence:
+        {json.dumps(integrated_evidence, indent=2)}
+        
+        Identify:
+        1. Any logical errors or inconsistencies
+        2. Missing considerations
+        3. Whether confidence level is appropriate
+        4. Suggestions for improvement
+        
+        Provide reflection in JSON format:
+        {{
+            "reflection": {{
+                "logical_errors": ["list of errors"],
+                "missing_considerations": ["what was missed"],
+                "confidence_assessment": "is confidence appropriate?",
+                "improvement_suggestions": ["suggestions"],
+                "should_revise": true/false
+            }}
+        }}
+        """
+        
+        try:
+            response = self.client.models.generate_content(
+                model=self.args.gemini_model if self.args else "gemini-2.0-flash-exp-2025-01-29",
+                contents=prompt
+            )
+            
+            return parse_json_response(response.text)
+            
+        except Exception as e:
+            print(f"Error in reflection: {e}")
+            return {"error": str(e)}
+    
+    def process_question(self, sample_data: Dict) -> Dict[str, Any]:
+        """Process a single question through the complete pipeline."""
+        question_text = sample_data['query_context'].split("MAIN QUESTION TO ANSWER:")[1].split("\n")[0].strip()
+        question_type = sample_data['question_type']
+        options = sample_data['options']
+        model_predictions = sample_data['model_predictions']
+        images = sample_data.get('images', [])
+        
+        # Step 1: Analyze images
+        image_analysis = self.analyze_images(images, sample_data['query_context'])
+        
+        # Step 2: Extract clinical context
+        clinical_context = self.extract_clinical_context(sample_data['query_context'])
+        
+        # Step 3: Initial integration
+        initial_integration = self.integrate_evidence(
+            image_analysis, clinical_context, model_predictions, {}
+        )
+        
+        # Step 4: Retrieve knowledge based on diagnoses
+        retrieved_knowledge = self.knowledge_retriever.retrieve_knowledge(
+            question_text, question_type, options,
+            image_analysis, clinical_context, initial_integration
+        )
+        
+        # Step 5: Final integration with retrieved knowledge
+        integrated_evidence = self.integrate_evidence(
+            image_analysis, clinical_context, model_predictions, retrieved_knowledge
+        )
+        
+        # Step 6: Reasoning with reflection cycles
+        best_reasoning = None
+        best_confidence = 0
+        
+        for cycle in range(self.args.max_reflection_cycles if self.args else 2):
+            reasoning = self.reason_with_reflection(
+                question_text, options, integrated_evidence, cycle
+            )
+            
+            if "reasoning" in reasoning and "confidence" in reasoning["reasoning"]:
+                current_confidence = reasoning["reasoning"]["confidence"]
+                
+                if current_confidence > best_confidence:
+                    best_reasoning = reasoning
+                    best_confidence = current_confidence
+                
+                # Reflect on reasoning
+                reflection = self.self_reflect(reasoning, integrated_evidence)
+                
+                # Check if we should stop
+                if (reflection.get("reflection", {}).get("should_revise", True) == False or 
+                    current_confidence >= (self.args.confidence_threshold if self.args else 0.75)):
+                    break
+        
+        # Extract final answer
+        final_answer = "Not mentioned"
+        if best_reasoning and "reasoning" in best_reasoning:
+            final_answer = best_reasoning["reasoning"].get("conclusion", "Not mentioned")
+        
+        return {
+            "question_text": question_text,
+            "question_type": question_type,
+            "options": options,
+            "final_answer": final_answer,
+            "confidence": best_confidence,
+            "reasoning": best_reasoning,
+            "retrieved_knowledge": retrieved_knowledge,
+            "image_analysis": image_analysis,
+            "clinical_context": clinical_context,
+            "integrated_evidence": integrated_evidence
+        }
     
     def process_single_encounter(self, agentic_data, encounter_id):
         """
@@ -1002,20 +1290,35 @@ class AgenticDermatologyPipeline:
                 print(f"Warning: No data found for {encounter_id}, {base_qid}")
                 continue
 
-            question_text = sample_data['query_context'].split("MAIN QUESTION TO ANSWER:")[1].split("\n")[0].strip()
-            question_type = sample_data['question_type']
-            options = sample_data['options']
-            model_predictions = sample_data['model_predictions']
-            
-            # Create a complete result for this question
-            encounter_results[encounter_id][base_qid] = {
-                "query_context": sample_data['query_context'],
-                "options": sample_data['options'],
-                "model_predictions": sample_data['model_predictions'],
-                "final_answer": "Not mentioned"  # Default answer
-            }
+            try:
+                # Process through the complete pipeline
+                result = self.process_question(sample_data)
+                
+                encounter_results[encounter_id][base_qid] = {
+                    "query_context": sample_data['query_context'],
+                    "options": sample_data['options'],
+                    "model_predictions": sample_data['model_predictions'],
+                    "final_answer": result["final_answer"],
+                    "confidence": result["confidence"],
+                    "reasoning": result.get("reasoning", {}),
+                    "retrieved_knowledge": result.get("retrieved_knowledge", {})
+                }
+                
+            except Exception as e:
+                print(f"Error processing {encounter_id}, {base_qid}: {e}")
+                encounter_results[encounter_id][base_qid] = {
+                    "query_context": sample_data['query_context'],
+                    "options": sample_data['options'],
+                    "model_predictions": sample_data['model_predictions'],
+                    "final_answer": "Not mentioned",
+                    "error": str(e)
+                }
 
-        output_file = os.path.join(self.args.output_dir if self.args else os.getcwd(), f"diagnosis_based_rag_results_{encounter_id}.json")
+        # Save intermediate results
+        output_file = os.path.join(
+            self.args.output_dir if self.args else os.getcwd(), 
+            f"diagnosis_based_rag_results_{encounter_id}.json"
+        )
         
         with open(output_file, "w") as f:
             json.dump(encounter_results, f, indent=2)
@@ -1135,26 +1438,211 @@ def run_diagnosis_based_pipeline_all_encounters(args=None):
     if args is None:
         args = Args(use_finetuning=True, use_test_dataset=True)
         
+    # Load data
     model_predictions_dict = DataLoader.load_all_model_predictions(args)
+    if not model_predictions_dict:
+        print("No model predictions found. Exiting.")
+        return
+        
     all_models_df = pd.concat(model_predictions_dict.values(), ignore_index=True)
     validation_df = DataLoader.load_validation_dataset(args)
     
+    # Create agentic data manager
     agentic_data = AgenticRAGData(all_models_df, validation_df)
+    
+    # Initialize pipeline
     pipeline = AgenticDermatologyPipeline(args=args)
     
+    # Get all unique encounters
     all_pairs = agentic_data.get_all_encounter_question_pairs()
     unique_encounter_ids = sorted(list(set(pair[0] for pair in all_pairs)))
     print(f"Found {len(unique_encounter_ids)} unique encounters to process")
     
+    # Process all encounters
     all_encounter_results = {}
+    
     for i, encounter_id in enumerate(unique_encounter_ids):
-        print(f"Processing encounter {i+1}/{len(unique_encounter_ids)}: {encounter_id}...")
+        print(f"\nProcessing encounter {i+1}/{len(unique_encounter_ids)}: {encounter_id}...")
         
         try:
             encounter_results = pipeline.process_single_encounter(agentic_data, encounter_id)
             if encounter_results:
                 all_encounter_results.update(encounter_results)
                 
+            # Save intermediate results periodically
             if (i+1) % 5 == 0 or (i+1) == len(unique_encounter_ids):
                 timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+                intermediate_file = os.path.join(
+                    args.output_dir,
+                    f"diagnosis_rag_intermediate_results_{timestamp}.json"
+                )
+                with open(intermediate_file, "w") as f:
+                    json.dump(all_encounter_results, f, indent=2)
+                print(f"Saved intermediate results to {intermediate_file}")
                 
+        except Exception as e:
+            print(f"Error processing encounter {encounter_id}: {e}")
+            traceback.print_exc()
+            continue
+    
+    # Format and save final results
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    formatted_output_file = os.path.join(
+        args.output_dir,
+        f"diagnosis_rag_formatted_predictions_{timestamp}.json"
+    )
+    
+    formatted_predictions = pipeline.format_results_for_evaluation(
+        all_encounter_results, 
+        formatted_output_file
+    )
+    
+    # Save complete results
+    complete_output_file = os.path.join(
+        args.output_dir,
+        f"diagnosis_rag_complete_results_{timestamp}.json"
+    )
+    with open(complete_output_file, "w") as f:
+        json.dump(all_encounter_results, f, indent=2)
+    
+    print(f"\nPipeline completed!")
+    print(f"Complete results saved to: {complete_output_file}")
+    print(f"Formatted predictions saved to: {formatted_output_file}")
+    print(f"Total encounters processed: {len(all_encounter_results)}")
+    print(f"Total complete encounters for evaluation: {len(formatted_predictions)}")
+    
+    return all_encounter_results, formatted_predictions
+
+
+def run_diagnosis_based_pipeline_sample(args=None, num_samples=3):
+    """Run the pipeline on a sample of encounters for testing."""
+    if args is None:
+        args = Args(use_finetuning=True, use_test_dataset=True)
+    
+    # Load data
+    model_predictions_dict = DataLoader.load_all_model_predictions(args)
+    if not model_predictions_dict:
+        print("No model predictions found. Exiting.")
+        return
+        
+    all_models_df = pd.concat(model_predictions_dict.values(), ignore_index=True)
+    validation_df = DataLoader.load_validation_dataset(args)
+    
+    # Create agentic data manager
+    agentic_data = AgenticRAGData(all_models_df, validation_df)
+    
+    # Initialize pipeline
+    pipeline = AgenticDermatologyPipeline(args=args)
+    
+    # Get sample encounters
+    all_pairs = agentic_data.get_all_encounter_question_pairs()
+    unique_encounter_ids = sorted(list(set(pair[0] for pair in all_pairs)))
+    
+    # Sample random encounters
+    sample_encounter_ids = random.sample(unique_encounter_ids, min(num_samples, len(unique_encounter_ids)))
+    print(f"Testing on {len(sample_encounter_ids)} sample encounters: {sample_encounter_ids}")
+    
+    # Process sample encounters
+    sample_results = {}
+    
+    for encounter_id in sample_encounter_ids:
+        print(f"\nProcessing sample encounter: {encounter_id}")
+        
+        try:
+            encounter_results = pipeline.process_single_encounter(agentic_data, encounter_id)
+            if encounter_results:
+                sample_results.update(encounter_results)
+                
+        except Exception as e:
+            print(f"Error processing encounter {encounter_id}: {e}")
+            traceback.print_exc()
+    
+    # Save sample results
+    timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+    sample_output_file = os.path.join(
+        args.output_dir,
+        f"diagnosis_rag_sample_results_{timestamp}.json"
+    )
+    
+    with open(sample_output_file, "w") as f:
+        json.dump(sample_results, f, indent=2)
+    
+    print(f"\nSample results saved to: {sample_output_file}")
+    print(f"Processed {len(sample_results)} encounters")
+    
+    return sample_results
+
+
+if __name__ == "__main__":
+    import argparse
+    
+    parser = argparse.ArgumentParser(description="Diagnosis-based RAG Medical Analysis Pipeline")
+    parser.add_argument("--mode", choices=["all", "sample", "single"], default="sample",
+                       help="Run mode: all encounters, sample, or single encounter")
+    parser.add_argument("--num_samples", type=int, default=3,
+                       help="Number of samples to process in sample mode")
+    parser.add_argument("--encounter_id", type=str,
+                       help="Specific encounter ID to process in single mode")
+    parser.add_argument("--use_test", action="store_true", default=True,
+                       help="Use test dataset (default: True)")
+    parser.add_argument("--use_finetuned", action="store_true", default=True,
+                       help="Use fine-tuned model predictions (default: True)")
+    
+    cmd_args = parser.parse_args()
+    
+    # Initialize configuration
+    args = Args(use_finetuning=cmd_args.use_finetuned, use_test_dataset=cmd_args.use_test)
+    
+    # Ensure output directory exists
+    os.makedirs(args.output_dir, exist_ok=True)
+    
+    # Load environment variables
+    load_dotenv()
+    
+    if cmd_args.mode == "all":
+        print("Running pipeline on all encounters...")
+        run_diagnosis_based_pipeline_all_encounters(args)
+        
+    elif cmd_args.mode == "sample":
+        print(f"Running pipeline on {cmd_args.num_samples} sample encounters...")
+        run_diagnosis_based_pipeline_sample(args, num_samples=cmd_args.num_samples)
+        
+    elif cmd_args.mode == "single":
+        if not cmd_args.encounter_id:
+            print("Error: --encounter_id required for single mode")
+            exit(1)
+            
+        print(f"Running pipeline on single encounter: {cmd_args.encounter_id}")
+        
+        # Load data
+        model_predictions_dict = DataLoader.load_all_model_predictions(args)
+        if not model_predictions_dict:
+            print("No model predictions found. Exiting.")
+            exit(1)
+            
+        all_models_df = pd.concat(model_predictions_dict.values(), ignore_index=True)
+        validation_df = DataLoader.load_validation_dataset(args)
+        
+        # Create agentic data manager
+        agentic_data = AgenticRAGData(all_models_df, validation_df)
+        
+        # Initialize pipeline
+        pipeline = AgenticDermatologyPipeline(args=args)
+        
+        # Process single encounter
+        results = pipeline.process_single_encounter(agentic_data, cmd_args.encounter_id)
+        
+        if results:
+            # Format and save results
+            timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+            output_file = os.path.join(
+                args.output_dir,
+                f"diagnosis_rag_single_{cmd_args.encounter_id}_{timestamp}.json"
+            )
+            
+            with open(output_file, "w") as f:
+                json.dump(results, f, indent=2)
+                
+            print(f"Results saved to: {output_file}")
+        else:
+            print(f"No results for encounter {cmd_args.encounter_id}")
