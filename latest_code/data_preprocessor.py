@@ -57,6 +57,38 @@ class DataPreprocessor:
             else:
                 return [options_str]
     
+    def _check_batch_files_exist(self, use_combined_dataset=False, data_type="train"):
+        """
+        Check if batch files already exist for the current configuration.
+        
+        Args:
+            use_combined_dataset: Whether using combined dataset
+            data_type: Type of data ("train", "val", "test")
+            
+        Returns:
+            Boolean indicating if batch files exist
+        """
+        if data_type == "test":
+            check_dir = self.config.PROCESSED_TEST_DATA_DIR
+            batch_prefix = "test_batch_"
+        elif data_type == "val":
+            check_dir = self.config.PROCESSED_VAL_DATA_DIR
+            batch_prefix = "val_batch_"
+        elif use_combined_dataset:
+            check_dir = self.config.PROCESSED_COMBINED_DATA_DIR
+            batch_prefix = "batch_"
+        else:
+            check_dir = self.config.PROCESSED_TRAIN_DATA_DIR
+            batch_prefix = "batch_"
+        
+        if not os.path.exists(check_dir):
+            return False
+        
+        batch_files = [f for f in os.listdir(check_dir) 
+                      if f.startswith(batch_prefix) and f.endswith(".pkl")]
+        
+        return len(batch_files) > 0
+    
     def prepare_dataset(self, mode="train"):
         """
         Create a dataset for either training, validation, or test data.
@@ -538,8 +570,11 @@ class DataPreprocessor:
         train_df = None
         val_df = None
         
-        if skip_data_prep:
-            print("Skipping data preparation...")
+        # Check if batch files already exist
+        batch_files_exist = self._check_batch_files_exist(use_combined_dataset)
+        
+        if skip_data_prep and batch_files_exist:
+            print("Skipping data preparation - batch files already exist...")
             
             if os.path.exists(os.path.join(self.config.OUTPUT_DIR, "train_dataset_processed.csv")):
                 train_df = pd.read_csv(os.path.join(self.config.OUTPUT_DIR, "train_dataset_processed.csv"))
@@ -599,6 +634,15 @@ class DataPreprocessor:
                 if os.path.exists(self.config.PROCESSED_VAL_DATA_DIR):
                     shutil.rmtree(self.config.PROCESSED_VAL_DATA_DIR)
                 os.makedirs(self.config.PROCESSED_VAL_DATA_DIR, exist_ok=True)
+            
+            # Process datasets into batch files
+            print("Processing datasets into batch files...")
+            self.process_all_datasets(
+                train_df=train_df,
+                val_df=val_df,
+                use_combined_dataset=use_combined_dataset,
+                batch_size=100
+            )
         
         return train_df, val_df
     
@@ -649,6 +693,22 @@ class DataPreprocessor:
             Number of processed test examples
         """
         print("Preparing and processing test dataset...")
+        
+        # Check if test batch files already exist
+        test_batch_files_exist = self._check_batch_files_exist(use_combined_dataset=False, data_type="test")
+        
+        if test_batch_files_exist:
+            print("Test batch files already exist, skipping processing...")
+            # Count existing test samples
+            batch_files = [f for f in os.listdir(self.config.PROCESSED_TEST_DATA_DIR) 
+                          if f.startswith("test_batch_") and f.endswith(".pkl")]
+            total_test = 0
+            for batch_file in batch_files:
+                with open(os.path.join(self.config.PROCESSED_TEST_DATA_DIR, batch_file), 'rb') as f:
+                    batch_data = pickle.load(f)
+                    total_test += len(batch_data)
+            print(f"Found {total_test} existing processed test examples")
+            return total_test
         
         # Clean up existing test processed directory
         if os.path.exists(self.config.PROCESSED_TEST_DATA_DIR):
