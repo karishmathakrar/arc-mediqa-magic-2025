@@ -51,6 +51,11 @@ except ImportError:
     print("Warning: qwen_vl_utils not available. Some Qwen functionality may be limited.")
     process_vision_info = None
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+from data_preprocessor import DataPreprocessor
+
 
 class Config:
     """Configuration class for the pipeline."""
@@ -190,172 +195,6 @@ class Config:
             raise FileNotFoundError(f"Required paths not found: {missing_paths}")
         
         return True
-
-
-class DataProcessor:
-    """Handles data processing and preparation."""
-    
-    def __init__(self, config):
-        self.config = config
-    
-    def safe_convert_options(self, options_str):
-        """Safely convert a string representation of a list to an actual list."""
-        if not isinstance(options_str, str):
-            return options_str
-            
-        try:
-            return ast.literal_eval(options_str)
-        except (SyntaxError, ValueError):
-            if options_str.startswith('[') and options_str.endswith(']'):
-                return [opt.strip().strip("'\"") for opt in options_str[1:-1].split(',')]
-            elif ',' in options_str:
-                return [opt.strip() for opt in options_str.split(',')]
-            else:
-                return [options_str]
-    
-    def prepare_dataset(self, mode="train"):
-        """Create a dataset for either training or validation data."""
-        print(f"Preparing {mode} dataset...")
-        
-        if mode == "train":
-            json_path = self.config.TRAIN_JSON_PATH
-            cvqa_path = self.config.TRAIN_CVQA_PATH
-            images_dir = self.config.TRAIN_IMAGES_DIR
-            output_filename = "train_dataset_processed.csv"
-        elif mode == "val":
-            json_path = self.config.VAL_JSON_PATH
-            cvqa_path = self.config.VAL_CVQA_PATH
-            images_dir = self.config.VAL_IMAGES_DIR
-            output_filename = "val_dataset.csv"
-        else:
-            raise ValueError("Mode must be either 'train' or 'val'")
-        
-        with open(self.config.QUESTIONS_PATH, 'r') as f:
-            questions = json.load(f)
-            
-        questions_df = pd.json_normalize(questions)[
-            ["qid", "question_en", "options_en", "question_type_en", "question_category_en"]
-        ]
-        
-        input_df = pd.read_json(json_path)
-        query_info_df = input_df[
-            ["encounter_id", "image_ids", "query_title_en", "query_content_en", "author_id"]
-        ]
-        
-        with open(cvqa_path, 'r') as f:
-            cvqa_data = json.load(f)
-        cvqa_df = pd.json_normalize(cvqa_data)
-        
-        cvqa_long = cvqa_df.melt(
-            id_vars=["encounter_id"], 
-            var_name="qid", 
-            value_name="answer_index"
-        )
-        
-        cvqa_long = cvqa_long[cvqa_long["qid"] != "encounter_id"]
-        cvqa_merged = cvqa_long.merge(questions_df, on="qid", how="left")
-        
-        def get_answer_text(row):
-            try:
-                return row["options_en"][row["answer_index"]]
-            except (IndexError, TypeError):
-                return None
-        
-        cvqa_merged["answer_text"] = cvqa_merged.apply(get_answer_text, axis=1)
-        final_df = cvqa_merged.merge(query_info_df, on="encounter_id", how="left")
-        final_df['base_qid'] = final_df['qid'].str.extract(r'(CQID\d+)')
-        
-        # Group by family and get valid answers
-        grouped_by_family = final_df.groupby(['encounter_id', 'base_qid']).agg({
-            'qid': list,
-            'question_en': list,
-            'answer_text': list,
-            'answer_index': list,
-            'image_ids': 'first',
-            'options_en': 'first',
-            'question_type_en': 'first',
-            'question_category_en': 'first',
-            'query_title_en': 'first',
-            'query_content_en': 'first',
-            'author_id': 'first'
-        }).reset_index()
-        
-        def get_valid_answers(row):
-            """Extract all valid answers, with special handling for 'Not mentioned'."""
-            answers = row['answer_text']
-            answer_indices = row['answer_index']
-
-            if all(ans == "Not mentioned" for ans in answers):
-                return [["Not mentioned"], [answer_indices[0]]]
-
-            valid_answers = []
-            valid_indices = []
-
-            for i, ans in enumerate(answers):
-                if ans != "Not mentioned":
-                    if isinstance(ans, str):
-                        cleaned_ans = ans.strip("'\" ").replace(" (please specify)", "")
-                        if cleaned_ans not in valid_answers:
-                            valid_answers.append(cleaned_ans)
-                            valid_indices.append(answer_indices[i])
-                    else:
-                        str_ans = str(ans).strip("'\" ")
-                        if str_ans not in valid_answers:
-                            valid_answers.append(str_ans)
-                            valid_indices.append(answer_indices[i])
-
-            return [valid_answers, valid_indices]
-        
-        grouped_by_family[['valid_answers', 'valid_indices']] = grouped_by_family.apply(
-            lambda row: pd.Series(get_valid_answers(row)), axis=1
-        )
-        
-        # Create dataset rows
-        dataset_rows = []
-        
-        for _, row in tqdm(grouped_by_family.iterrows(), desc=f"Creating {mode} dataset"):
-            encounter_id = row['encounter_id']
-            base_qid = row['base_qid']
-            valid_answers = row['valid_answers']
-            valid_indices = row['valid_indices']
-            image_ids = row['image_ids']
-            question_text = row['question_en'][0]
-            query_title = row['query_title_en']
-            query_content = row['query_content_en']
-            author_id = row['author_id']
-            options_en = row['options_en']
-            question_type_en = row['question_type_en']
-            question_category_en = row['question_category_en']
-            
-            for img_id in image_ids:
-                img_path = os.path.join(images_dir, img_id)
-                
-                if not os.path.exists(img_path):
-                    print(f"Warning: Image {img_id} not found at {img_path}")
-                    continue
-                    
-                dataset_rows.append({
-                    'encounter_id': encounter_id,
-                    'base_qid': base_qid,
-                    'image_id': img_id,
-                    'image_path': img_path,
-                    'valid_answers': valid_answers,
-                    'valid_indices': valid_indices,
-                    'question_text': question_text,
-                    'query_title_en': query_title,
-                    'query_content_en': query_content,
-                    'author_id': author_id,
-                    'options_en': options_en,
-                    'question_type_en': question_type_en, 
-                    'question_category_en': question_category_en,
-                    'is_multi_label': len(valid_answers) > 1
-                })
-        
-        dataset = pd.DataFrame(dataset_rows)
-        dataset.to_csv(os.path.join(self.config.OUTPUT_DIR, output_filename), index=False)
-        
-        print(f"{mode.capitalize()} dataset created with {len(dataset)} entries")
-        return dataset
 
 
 class ModelManager:
@@ -929,44 +768,52 @@ class TrainingPipeline:
     
     def __init__(self, config):
         self.config = config
-        self.data_processor = DataProcessor(config)
+        self.data_preprocessor = DataPreprocessor(config)
         self.model_manager = ModelManager(config)
         self.inference_manager = InferenceManager(config)
         
-    def prepare_training_data(self, use_combined=False, test_mode=False, min_data_size=10):
+    def prepare_training_data(self, use_combined=False, test_mode=False, min_data_size=10, skip_data_prep=False):
         """Prepare training and validation datasets."""
-        if use_combined:
-            print("Creating combined train+val dataset...")
-            train_df = self.data_processor.prepare_dataset(mode="train")
-            val_df = self.data_processor.prepare_dataset(mode="val")
-            
-            train_df = pd.concat([train_df, val_df], ignore_index=True)
-            val_df = None
-            
-            combined_file = os.path.join(self.config.OUTPUT_DIR, "combined_train_val_dataset.csv")
-            train_df.to_csv(combined_file, index=False)
-            print(f"Combined dataset saved to {combined_file} with {len(train_df)} samples")
-        else:
-            print("Preparing training dataset...")
-            train_df = self.data_processor.prepare_dataset(mode="train")
-            
-            print("Preparing validation dataset...")
-            val_df = self.data_processor.prepare_dataset(mode="val")
+        return self.data_preprocessor.prepare_and_process_datasets(
+            skip_data_prep=skip_data_prep,
+            use_combined_dataset=use_combined,
+            test_mode=test_mode,
+            min_data_size=min_data_size
+        )
+    
+    def process_datasets_to_batches(self, train_df=None, val_df=None, use_combined=False, batch_size=100):
+        """Process datasets into batch files for training."""
+        return self.data_preprocessor.process_all_datasets(
+            train_df=train_df,
+            val_df=val_df,
+            use_combined_dataset=use_combined,
+            batch_size=batch_size
+        )
+    
+    def process_test_dataset(self, batch_size=100):
+        """Process test dataset into batch files."""
+        return self.data_preprocessor.process_test_dataset(batch_size=batch_size)
+    
+    def inspect_processed_data(self, processed_dir=None, num_samples=3, data_type="val"):
+        """Inspect processed data samples."""
+        return self.data_preprocessor.inspect_processed_data(
+            processed_dir=processed_dir,
+            num_samples=num_samples,
+            data_type=data_type
+        )
+    
+    def analyze_dataset_tokens(self, dataset_dir=None, processor=None, num_samples=None, data_type="val"):
+        """Analyze token usage in the dataset."""
+        if processor is None:
+            # Load processor for token analysis
+            _, processor = self.model_manager.load_model_and_processor()
         
-        if test_mode:
-            print("Running in test mode with a small subset of data...")
-            
-            if train_df is not None:
-                test_size = min(min_data_size, len(train_df))
-                train_df = train_df.head(test_size)
-                print(f"Using {len(train_df)} training samples for testing")
-            
-            if val_df is not None:
-                test_size = min(min_data_size, len(val_df))
-                val_df = val_df.head(test_size)
-                print(f"Using {len(val_df)} validation samples for testing")
-        
-        return train_df, val_df
+        return self.data_preprocessor.analyze_dataset_tokens(
+            dataset_dir=dataset_dir,
+            processor=processor,
+            num_samples=num_samples,
+            data_type=data_type
+        )
     
     def create_collate_fn(self, processor, is_qwen, is_llama):
         """Create custom collate function for batching examples."""
@@ -1283,7 +1130,7 @@ class TrainingPipeline:
                 if base_qid not in qid_variants:
                     continue
                 
-                options = self.data_processor.safe_convert_options(row.get('options_en', []))
+                options = self.data_preprocessor.safe_convert_options(row.get('options_en', []))
                 
                 not_mentioned_index = None
                 for i, opt in enumerate(options):
