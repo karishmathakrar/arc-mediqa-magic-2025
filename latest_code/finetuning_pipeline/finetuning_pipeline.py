@@ -114,6 +114,7 @@ class Config:
             self.OUTPUT_DIR = os.path.join(self.BASE_DIR, "outputs")
         else:
             self.OUTPUT_DIR = os.path.abspath(output_dir)
+        print("output!", self.OUTPUT_DIR)
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
         
         # Data paths

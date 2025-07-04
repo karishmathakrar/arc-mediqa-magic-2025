@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Example usage of the Medical Vision Pipeline
+Example usage of the FineTuningPipeline
 
 This script demonstrates how to use the refactored pipeline components
 that can now be easily imported and used in other projects.
@@ -11,11 +11,10 @@ def example_basic_usage():
     """Example of basic pipeline usage with default settings."""
     print("=== Example 1: Basic Usage ===")
     
-    from latest_code import FineTuningPipeline
-    
     # Initialize pipeline with default settings
     # This will use the current directory and validate paths
     try:
+        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
         pipeline = FineTuningPipeline()
         
         # Print available models
@@ -36,14 +35,13 @@ def example_custom_config():
     """Example of pipeline usage with custom configuration."""
     print("\n=== Example 2: Custom Configuration ===")
     
-    from latest_code import FineTuningPipeline
-    
     # Initialize with custom settings
     try:
+        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
         pipeline = FineTuningPipeline(
             model_name="Qwen2.5-VL-3B-Instruct",  # Different model
-            base_dir="/path/to/your/data",         # Custom data directory
-            output_dir="/path/to/your/outputs",    # Custom output directory
+            base_dir="../../",         # Custom data directory
+            output_dir="../../outputs",    # Custom output directory
             validate_paths=False,                  # Skip path validation for demo
             setup_environment=False                # Skip environment setup
         )
@@ -61,26 +59,27 @@ def example_training_workflow():
     """Example of complete training workflow."""
     print("\n=== Example 3: Training Workflow ===")
     
-    from latest_code import FineTuningPipeline
-    
     try:
+        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
         # Initialize pipeline
         pipeline = FineTuningPipeline(
             model_name="Qwen2-VL-2B-Instruct",
-            validate_paths=False  # Skip for demo
+            base_dir="../../",         # Custom data directory
+            output_dir="../../outputs",    # Custom output directory
+            validate_paths=True,
         )
         
         # Step 1: Prepare data (would normally process your dataset)
         print("Step 1: Preparing data...")
-        # train_df, val_df = pipeline.prepare_data(test_mode=True, min_data_size=5)
+        train_df, val_df = pipeline.prepare_data(test_mode=True, min_data_size=5)
         
         # Step 2: Train model (would normally train on your data)
         print("Step 2: Training model...")
-        # trainer = pipeline.train(test_mode=True)
+        trainer = pipeline.train(test_mode=True)
         
         # Step 3: Run inference (would normally run on validation data)
         print("Step 3: Running inference...")
-        # predictions = pipeline.run_inference(max_samples=10)
+        predictions = pipeline.run_inference(max_samples=10)
         
         print("Training workflow completed! (simulated)")
         
@@ -93,9 +92,8 @@ def example_single_prediction():
     """Example of making a single prediction."""
     print("\n=== Example 4: Single Prediction ===")
     
-    from latest_code import FineTuningPipeline
-    
     try:
+        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
         pipeline = FineTuningPipeline(validate_paths=False)
         
         # Example single prediction (would need actual image and model)
@@ -120,9 +118,7 @@ def example_individual_components():
     print("\n=== Example 5: Individual Components ===")
     
     try:
-        # Import individual classes for more granular control
-        from latest_code.finetuning_pipeline import Config, DataProcessor, ModelManager
-        
+        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
         # Create custom configuration
         config = Config(
             model_name="Qwen2-VL-2B-Instruct",
