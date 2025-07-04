@@ -55,15 +55,27 @@ except ImportError:
 class Config:
     """Configuration class for the pipeline."""
     
-    def __init__(self):
-        # Environment setup
-        load_dotenv()
-        if "TRANSFORMERS_CACHE" in os.environ:
-            print(f"Removing existing TRANSFORMERS_CACHE: {os.environ['TRANSFORMERS_CACHE']}")
-            del os.environ["TRANSFORMERS_CACHE"]
+    def __init__(self, 
+                 model_name="Qwen2-VL-2B-Instruct",
+                 base_dir=None,
+                 output_dir=None,
+                 hf_token=None,
+                 setup_environment=True,
+                 validate_paths=True):
+        """
+        Initialize configuration.
         
-        os.environ["HF_HOME"] = os.path.join(os.getcwd(), ".hf_cache")
-        print(f"HF_HOME: {os.getenv('HF_HOME')}")
+        Args:
+            model_name: Name of the model to use
+            base_dir: Base directory containing dataset (defaults to script directory)
+            output_dir: Output directory for models and results (defaults to base_dir/outputs)
+            hf_token: HuggingFace token (defaults to environment variable)
+            setup_environment: Whether to setup environment variables
+            validate_paths: Whether to validate that required paths exist
+        """
+        # Environment setup
+        if setup_environment:
+            self._setup_environment()
         
         # Available models
         self.AVAILABLE_MODELS = {
@@ -76,11 +88,19 @@ class Config:
             "Qwen2.5-VL-7B-Instruct": "Qwen/Qwen2.5-VL-7B-Instruct"
         }
         
+        # Validate model selection
+        if model_name not in self.AVAILABLE_MODELS:
+            raise ValueError(f"Model {model_name} not available. Choose from: {list(self.AVAILABLE_MODELS.keys())}")
+        
         # Model selection
-        self.SELECTED_MODEL = "Qwen2-VL-2B-Instruct"
+        self.SELECTED_MODEL = model_name
         
         # Directory setup
-        self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        if base_dir is None:
+            self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        else:
+            self.BASE_DIR = os.path.abspath(base_dir)
+            
         self.DATASET_DIR = os.path.join(self.BASE_DIR, "2025_dataset")
         self.TRAIN_DIR = os.path.join(self.DATASET_DIR, "train")
         self.VAL_DIR = os.path.join(self.DATASET_DIR, "valid")
@@ -90,7 +110,10 @@ class Config:
         self.VAL_IMAGES_DIR = os.path.join(self.VAL_DIR, "images_valid")
         self.TEST_IMAGES_DIR = os.path.join(self.TEST_DIR, "images_test")
         
-        self.OUTPUT_DIR = os.path.join(self.BASE_DIR, "outputs")
+        if output_dir is None:
+            self.OUTPUT_DIR = os.path.join(self.BASE_DIR, "outputs")
+        else:
+            self.OUTPUT_DIR = os.path.abspath(output_dir)
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
         
         # Data paths
@@ -107,7 +130,7 @@ class Config:
         self.IS_LLAMA = "llama" in self.MODEL_ID.lower()
         self.IS_QWEN = "qwen" in self.MODEL_ID.lower()
         
-        self.HF_TOKEN = os.getenv("HF_TOKEN")
+        self.HF_TOKEN = hf_token or os.getenv("HF_TOKEN")
         
         # Output paths
         self.TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d_%H%M")
@@ -129,6 +152,43 @@ class Config:
         self.PROCESSED_TEST_DATA_DIR = os.path.join(
             self.OUTPUT_DIR, f"processed_test_data-{self.SELECTED_MODEL}-V3"
         )
+        
+        # Validate paths if requested
+        if validate_paths:
+            self.validate_paths()
+    
+    def _setup_environment(self):
+        """Setup environment variables for the pipeline."""
+        load_dotenv()
+        if "TRANSFORMERS_CACHE" in os.environ:
+            print(f"Removing existing TRANSFORMERS_CACHE: {os.environ['TRANSFORMERS_CACHE']}")
+            del os.environ["TRANSFORMERS_CACHE"]
+        
+        os.environ["HF_HOME"] = os.path.join(os.getcwd(), ".hf_cache")
+        print(f"HF_HOME: {os.getenv('HF_HOME')}")
+    
+    def validate_paths(self):
+        """Validate that required data paths exist."""
+        required_paths = [
+            self.DATASET_DIR,
+            self.TRAIN_DIR,
+            self.VAL_DIR,
+            self.QUESTIONS_PATH,
+            self.TRAIN_JSON_PATH,
+            self.VAL_JSON_PATH,
+            self.TRAIN_CVQA_PATH,
+            self.VAL_CVQA_PATH
+        ]
+        
+        missing_paths = []
+        for path in required_paths:
+            if not os.path.exists(path):
+                missing_paths.append(path)
+        
+        if missing_paths:
+            raise FileNotFoundError(f"Required paths not found: {missing_paths}")
+        
+        return True
 
 
 class DataProcessor:
@@ -1291,6 +1351,195 @@ class TrainingPipeline:
         
         print(f"Formatted predictions saved to {output_file} ({len(formatted_predictions)} complete encounters)")
         return formatted_predictions
+
+
+class FineTuningPipeline:
+    """
+    Main wrapper class for easy import and use of the medical vision pipeline.
+    
+    Example usage:
+        from latest_code.finetuning_pipeline import FineTuningPipeline
+        
+        # Initialize pipeline
+        pipeline = FineTuningPipeline(
+            model_name="Qwen2-VL-2B-Instruct",
+            base_dir="/path/to/data",
+            output_dir="/path/to/outputs"
+        )
+        
+        # Train a model
+        trainer = pipeline.train(use_combined=False, test_mode=False)
+        
+        # Run inference
+        predictions = pipeline.run_inference(use_finetuning=True)
+    """
+    
+    def __init__(self, 
+                 model_name="Qwen2-VL-2B-Instruct",
+                 base_dir=None,
+                 output_dir=None,
+                 hf_token=None,
+                 setup_environment=True,
+                 validate_paths=True):
+        """
+        Initialize the Medical Vision Pipeline.
+        
+        Args:
+            model_name: Name of the model to use (default: "Qwen2-VL-2B-Instruct")
+            base_dir: Base directory containing dataset (defaults to current directory)
+            output_dir: Output directory for models and results (defaults to base_dir/outputs)
+            hf_token: HuggingFace token (defaults to environment variable)
+            setup_environment: Whether to setup environment variables (default: True)
+            validate_paths: Whether to validate that required paths exist (default: True)
+        """
+        self.config = Config(
+            model_name=model_name,
+            base_dir=base_dir,
+            output_dir=output_dir,
+            hf_token=hf_token,
+            setup_environment=setup_environment,
+            validate_paths=validate_paths
+        )
+        self.training_pipeline = TrainingPipeline(self.config)
+        
+        print(f"FineTuningPipeline initialized with model: {model_name}")
+        print(f"Base directory: {self.config.BASE_DIR}")
+        print(f"Output directory: {self.config.OUTPUT_DIR}")
+    
+    def get_available_models(self):
+        """Get list of available models."""
+        return list(self.config.AVAILABLE_MODELS.keys())
+    
+    def prepare_data(self, use_combined=False, test_mode=False, min_data_size=10):
+        """
+        Prepare training and validation datasets.
+        
+        Args:
+            use_combined: Whether to combine train and validation data
+            test_mode: Whether to use a small subset for testing
+            min_data_size: Minimum data size when in test mode
+            
+        Returns:
+            Tuple of (train_df, val_df)
+        """
+        return self.training_pipeline.prepare_training_data(
+            use_combined=use_combined,
+            test_mode=test_mode,
+            min_data_size=min_data_size
+        )
+    
+    def train(self, use_combined=False, test_mode=False):
+        """
+        Train the model.
+        
+        Args:
+            use_combined: Whether to combine train and validation data for training
+            test_mode: Whether to run in test mode with small dataset
+            
+        Returns:
+            Trainer object if successful, None if failed
+        """
+        return self.training_pipeline.train(
+            use_combined=use_combined,
+            test_mode=test_mode
+        )
+    
+    def run_inference(self, use_finetuning=True, test_mode=False, max_samples=None):
+        """
+        Run inference on validation or test data.
+        
+        Args:
+            use_finetuning: Whether to use fine-tuned model or base model
+            test_mode: Whether to run on test data instead of validation
+            max_samples: Maximum number of samples to process (None for all)
+            
+        Returns:
+            Tuple of (predictions_df, aggregated_df, formatted_predictions)
+        """
+        return self.training_pipeline.run_inference(
+            use_finetuning=use_finetuning,
+            test_mode=test_mode,
+            max_samples=max_samples
+        )
+    
+    def predict_single(self, image_path, query_text, model_path=None, max_new_tokens=100):
+        """
+        Run prediction on a single image and query.
+        
+        Args:
+            image_path: Path to the image file
+            query_text: Query text for the image
+            model_path: Path to model (defaults to latest fine-tuned model)
+            max_new_tokens: Maximum tokens to generate
+            
+        Returns:
+            Prediction string
+        """
+        if model_path is None:
+            # Find latest checkpoint and merge
+            checkpoint_pattern = os.path.join(
+                self.config.OUTPUT_DIR, "finetuned-model", f"{self.config.MODEL_NAME}_*", "checkpoint-*"
+            )
+            checkpoint_dirs = glob.glob(checkpoint_pattern)
+            
+            if checkpoint_dirs:
+                checkpoint_dirs = sorted(checkpoint_dirs, 
+                                        key=lambda x: int(re.search(r'checkpoint-(\d+)', x).group(1)), 
+                                        reverse=True)
+                checkpoint_path = checkpoint_dirs[0]
+                
+                # Create merged model
+                model_path = self.training_pipeline.inference_manager.merge_lora_model(
+                    checkpoint_path=checkpoint_path,
+                    token=self.config.HF_TOKEN
+                )
+            else:
+                # Use base model
+                model_path = self.config.MODEL_ID
+        
+        # Initialize inference
+        inference = MedicalImageInference(
+            model_path=model_path,
+            token=self.config.HF_TOKEN
+        )
+        
+        return inference.predict(query_text, image_path, max_new_tokens)
+    
+    def evaluate_predictions(self, prediction_file, reference_file=None):
+        """
+        Evaluate predictions against reference.
+        
+        Args:
+            prediction_file: Path to prediction file
+            reference_file: Path to reference file (defaults to validation data)
+            
+        Returns:
+            Evaluation results
+        """
+        if reference_file is None:
+            reference_file = self.config.VAL_CVQA_PATH
+        
+        # Import evaluation script
+        from .evaluation_script import MedicalEvaluator
+        evaluator = MedicalEvaluator()
+        
+        return evaluator.evaluate_predictions(reference_file, prediction_file)
+    
+    def get_config(self):
+        """Get the current configuration."""
+        return self.config
+    
+    def print_system_info(self):
+        """Print system information."""
+        print(f"Python version: {os.sys.version}")
+        print(f"PyTorch version: {torch.__version__}")
+        print(f"CUDA available: {torch.cuda.is_available()}")
+        
+        if torch.cuda.is_available():
+            print(f"CUDA version: {torch.version.cuda}")
+            print(f"CUDA device count: {torch.cuda.device_count()}")
+            print(f"Current CUDA device: {torch.cuda.current_device()}")
+            print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
 
 
 def main():
