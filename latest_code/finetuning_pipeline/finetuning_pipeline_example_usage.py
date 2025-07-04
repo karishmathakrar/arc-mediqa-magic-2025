@@ -5,7 +5,6 @@ Example usage of the FineTuningPipeline
 This script demonstrates how to use the refactored pipeline components
 that can now be easily imported and used in other projects.
 """
-
 # Example 1: Basic usage with default settings
 def example_basic_usage():
     """Example of basic pipeline usage with default settings."""
@@ -14,7 +13,8 @@ def example_basic_usage():
     # Initialize pipeline with default settings
     # This will use the current directory and validate paths
     try:
-        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
+        import os
+        from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline, Config, ModelManager
         pipeline = FineTuningPipeline()
         
         # Print available models
@@ -34,14 +34,16 @@ def example_basic_usage():
 def example_custom_config():
     """Example of pipeline usage with custom configuration."""
     print("\n=== Example 2: Custom Configuration ===")
-    
+    import os
+    from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline, Config, ModelManager
+
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     # Initialize with custom settings
     try:
-        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
         pipeline = FineTuningPipeline(
             model_name="Qwen2.5-VL-3B-Instruct",  # Different model
-            base_dir="../../",         # Custom data directory
-            output_dir="../../outputs",    # Custom output directory
+            base_dir=base_dir,         # Custom data directory
+            output_dir=f"{base_dir}/outputs",    # Custom output directory
             validate_paths=False,                  # Skip path validation for demo
             setup_environment=False                # Skip environment setup
         )
@@ -58,14 +60,16 @@ def example_custom_config():
 def example_training_workflow():
     """Example of complete training workflow."""
     print("\n=== Example 3: Training Workflow ===")
-    
+    from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline, Config, ModelManager
+    import os
+
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
     try:
-        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
         # Initialize pipeline
         pipeline = FineTuningPipeline(
             model_name="Qwen2-VL-2B-Instruct",
-            base_dir="../../",         # Custom data directory
-            output_dir="../../outputs",    # Custom output directory
+            base_dir=base_dir,         # Custom data directory
+            output_dir=f"{base_dir}/outputs",    # Custom output directory
             validate_paths=True,
         )
         
@@ -87,56 +91,6 @@ def example_training_workflow():
         print(f"Training workflow error: {e}")
 
 
-# Example 4: Single prediction
-def example_single_prediction():
-    """Example of making a single prediction."""
-    print("\n=== Example 4: Single Prediction ===")
-    
-    try:
-        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
-        pipeline = FineTuningPipeline(validate_paths=False)
-        
-        # Example single prediction (would need actual image and model)
-        image_path = "/path/to/medical/image.jpg"
-        query_text = "What skin condition is visible in this image?"
-        
-        print(f"Would predict on image: {image_path}")
-        print(f"With query: {query_text}")
-        
-        # prediction = pipeline.predict_single(image_path, query_text)
-        # print(f"Prediction: {prediction}")
-        
-        print("Single prediction example completed! (simulated)")
-        
-    except Exception as e:
-        print(f"Single prediction error: {e}")
-
-
-# Example 5: Using individual components
-def example_individual_components():
-    """Example of using individual pipeline components."""
-    print("\n=== Example 5: Individual Components ===")
-    
-    try:
-        from finetuning_pipeline import FineTuningPipeline, Config, DataProcessor, ModelManager
-        # Create custom configuration
-        config = Config(
-            model_name="Qwen2-VL-2B-Instruct",
-            validate_paths=False
-        )
-        
-        # Use individual components
-        data_processor = DataProcessor(config)
-        model_manager = ModelManager(config)
-        
-        print("Individual components initialized successfully!")
-        print(f"Model ID: {config.MODEL_ID}")
-        print(f"Is Qwen model: {config.IS_QWEN}")
-        
-    except Exception as e:
-        print(f"Individual components error: {e}")
-
-
 def main():
     """Run all examples."""
     print("Medical Vision Pipeline - Usage Examples")
@@ -146,8 +100,6 @@ def main():
     example_basic_usage()
     example_custom_config()
     example_training_workflow()
-    example_single_prediction()
-    example_individual_components()
     
     print("\n" + "=" * 50)
     print("All examples completed!")
