@@ -23,42 +23,59 @@ from google import genai
 class Args:
     """Configuration arguments for the reasoning pipeline."""
     
-    def __init__(self, use_finetuning=False, use_test_dataset=False):
+    def __init__(self, use_finetuning=False, use_test_dataset=False, base_dir=None, output_dir=None, 
+                 model_predictions_dir=None, images_dir=None, dataset_path=None, gemini_model=None):
         """
         Initialize arguments with options for dataset and model type.
         
         Parameters:
         - use_finetuning: Whether to use the fine-tuned model predictions (True) or base model predictions (False)
         - use_test_dataset: Whether to use the test dataset (True) or validation dataset (False)
+        - base_dir: Base directory for the project (defaults to current working directory)
+        - output_dir: Output directory for results (defaults to base_dir/outputs)
+        - model_predictions_dir: Directory containing model predictions (defaults to output_dir/val-base-predictions)
+        - images_dir: Directory containing images (auto-determined based on dataset if not provided)
+        - dataset_path: Path to dataset CSV file (auto-determined based on dataset if not provided)
+        - gemini_model: Gemini model to use (defaults to gemini-2.5-flash-preview-04-17)
         """
         self.use_finetuning = use_finetuning
         self.use_test_dataset = use_test_dataset
         
-        self.base_dir = os.getcwd()
-        self.output_dir = os.path.join(self.base_dir, "outputs")
-        self.model_predictions_dir = os.path.join(self.output_dir, "val-base-predictions")
+        # Set base directory
+        self.base_dir = base_dir or os.getcwd()
         
+        # Set output directory
+        self.output_dir = output_dir or os.path.join(self.base_dir, "outputs")
+        
+        # Set model predictions directory
+        self.model_predictions_dir = model_predictions_dir or os.path.join(self.output_dir, "val-base-predictions")
+        
+        # Set dataset-specific configurations
         if self.use_test_dataset:
             self.dataset_name = "test"
-            self.dataset_path = os.path.join(self.output_dir, "test_dataset.csv")
-            self.images_dir = os.path.join(self.base_dir, "2025_dataset", "test", "images_test")
+            self.dataset_path = dataset_path or os.path.join(self.output_dir, "test_dataset.csv")
+            self.images_dir = images_dir or os.path.join(self.base_dir, "2025_dataset", "test", "images_test")
             self.prediction_prefix = "aggregated_test_predictions_"
         else:
             self.dataset_name = "validation"
-            self.dataset_path = os.path.join(self.output_dir, "val_dataset.csv")
-            self.images_dir = os.path.join(self.base_dir, "2025_dataset", "valid", "images_valid")
+            self.dataset_path = dataset_path or os.path.join(self.output_dir, "val_dataset.csv")
+            self.images_dir = images_dir or os.path.join(self.base_dir, "2025_dataset", "valid", "images_valid")
             self.prediction_prefix = "aggregated_predictions_"
         
         self.model_type = "finetuned" if self.use_finetuning else "base"
         
-        self.gemini_model = "gemini-2.5-flash-preview-04-17"
+        self.gemini_model = gemini_model or "gemini-2.5-flash-preview-04-17"
         
         print(f"\nConfiguration initialized:")
+        print(f"- Base directory: {self.base_dir}")
+        print(f"- Output directory: {self.output_dir}")
         print(f"- Using {'test' if self.use_test_dataset else 'validation'} dataset")
         print(f"- Looking for {self.model_type} model predictions")
         print(f"- Dataset path: {self.dataset_path}")
         print(f"- Images directory: {self.images_dir}")
+        print(f"- Model predictions directory: {self.model_predictions_dir}")
         print(f"- Prediction file prefix: {self.prediction_prefix}")
+        print(f"- Gemini model: {self.gemini_model}")
 
 
 class DataLoader:
@@ -1047,32 +1064,18 @@ class ReasoningConfig:
     
     def to_reasoning_args(self) -> Args:
         """Convert to Args format."""
+        # Pass all configuration parameters directly to Args constructor
         args = Args(
             use_finetuning=self.use_finetuning,
-            use_test_dataset=self.use_test_dataset
+            use_test_dataset=self.use_test_dataset,
+            base_dir=self.base_dir,
+            output_dir=self.output_dir,
+            model_predictions_dir=self.model_predictions_dir,
+            images_dir=self.images_dir,
+            dataset_path=self.dataset_path,
+            gemini_model=self.gemini_model
         )
         
-        # Override with custom paths if provided
-        if self.base_dir:
-            args.base_dir = self.base_dir
-            args.output_dir = os.path.join(self.base_dir, "outputs")
-            args.model_predictions_dir = os.path.join(args.output_dir, "val-base-predictions")
-            
-        if self.output_dir:
-            args.output_dir = self.output_dir
-            
-        if self.model_predictions_dir:
-            args.model_predictions_dir = self.model_predictions_dir
-            
-        if self.images_dir:
-            args.images_dir = self.images_dir
-            
-        if self.dataset_path:
-            args.dataset_path = self.dataset_path
-            
-        if self.gemini_model:
-            args.gemini_model = self.gemini_model
-            
         return args
 
 
