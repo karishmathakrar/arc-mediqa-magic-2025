@@ -9,8 +9,11 @@ that can now be easily imported and used in other projects.
 import os
 import sys
 
-# Get the base directory (parent of latest_code)
 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+# Add latest_code/ to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+print(sys.path)
 
 # Example 1: Basic usage with default settings
 def example_basic_usage():
@@ -18,7 +21,7 @@ def example_basic_usage():
     print("=== Example 1: Basic Usage ===")
     
     try:
-        from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline, Config, ModelManager
+        from finetuning_pipeline.pipeline import FineTuningPipeline, Config, ModelManager
         
         # Initialize pipeline with default settings
         pipeline = FineTuningPipeline(
@@ -52,7 +55,7 @@ def example_custom_config():
     """Example of pipeline usage with custom configuration."""
     print("\n=== Example 2: Custom Configuration ===")
     
-    from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline, Config, ModelManager
+    from finetuning_pipeline.pipeline import FineTuningPipeline, Config, ModelManager
 
     # Test different models
     models_to_test = [
@@ -88,7 +91,7 @@ def example_data_preprocessing():
     print("\n=== Example 3: Data Preprocessing & Inspection ===")
     
     try:
-        from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline
+        from finetuning_pipeline.pipeline import FineTuningPipeline
         
         # Initialize pipeline
         pipeline = FineTuningPipeline(
@@ -134,7 +137,7 @@ def example_test_dataset_processing():
     print("\n=== Example 4: Test Dataset Processing ===")
     
     try:
-        from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline
+        from finetuning_pipeline.pipeline import FineTuningPipeline
         
         # Initialize pipeline
         pipeline = FineTuningPipeline(
@@ -168,7 +171,7 @@ def example_token_analysis():
     print("\n=== Example 5: Token Analysis ===")
     
     try:
-        from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline
+        from finetuning_pipeline.pipeline import FineTuningPipeline
         
         # Initialize pipeline
         pipeline = FineTuningPipeline(
@@ -209,7 +212,7 @@ def example_training_workflow():
     print("\n=== Example 6: Training Workflow ===")
     
     try:
-        from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline
+        from finetuning_pipeline.pipeline import FineTuningPipeline
         
         # Initialize pipeline
         pipeline = FineTuningPipeline(
@@ -251,7 +254,7 @@ def example_inference_workflow():
     print("\n=== Example 7: Inference Workflow ===")
     
     try:
-        from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline
+        from finetuning_pipeline.pipeline import FineTuningPipeline
         
         # Initialize pipeline
         pipeline = FineTuningPipeline(
@@ -310,7 +313,7 @@ def example_single_prediction():
     print("\n=== Example 8: Single Prediction ===")
     
     try:
-        from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline
+        from finetuning_pipeline.pipeline import FineTuningPipeline
         import glob
         
         # Initialize pipeline
@@ -367,7 +370,7 @@ def example_model_management():
     print("\n=== Example 9: Model Management ===")
     
     try:
-        from finetuning_pipeline.finetuning_pipeline import FineTuningPipeline, ModelManager
+        from finetuning_pipeline.pipeline import FineTuningPipeline, ModelManager
         
         # Initialize pipeline
         pipeline = FineTuningPipeline(
@@ -400,7 +403,7 @@ def example_configuration_validation():
     print("\n=== Example 10: Configuration Validation ===")
     
     try:
-        from finetuning_pipeline.finetuning_pipeline import Config
+        from latest_code.finetuning_pipeline.pipeline import Config
         
         # Test valid configuration
         print("Testing valid configuration...")
