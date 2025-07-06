@@ -51,19 +51,37 @@ except ImportError:
     print("Warning: qwen_vl_utils not available. Some Qwen functionality may be limited.")
     process_vision_info = None
 
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from data_preprocessor import DataPreprocessor
+
 
 class Config:
     """Configuration class for the pipeline."""
     
-    def __init__(self):
-        # Environment setup
-        load_dotenv()
-        if "TRANSFORMERS_CACHE" in os.environ:
-            print(f"Removing existing TRANSFORMERS_CACHE: {os.environ['TRANSFORMERS_CACHE']}")
-            del os.environ["TRANSFORMERS_CACHE"]
+    def __init__(self, 
+                 model_name="Qwen2-VL-2B-Instruct",
+                 base_dir=None,
+                 output_dir=None,
+                 hf_token=None,
+                 setup_environment=True,
+                 validate_paths=True):
+        """
+        Initialize configuration.
         
-        os.environ["HF_HOME"] = os.path.join(os.getcwd(), ".hf_cache")
-        print(f"HF_HOME: {os.getenv('HF_HOME')}")
+        Args:
+            model_name: Name of the model to use
+            base_dir: Base directory containing dataset (defaults to script directory)
+            output_dir: Output directory for models and results (defaults to base_dir/outputs)
+            hf_token: HuggingFace token (defaults to environment variable)
+            setup_environment: Whether to setup environment variables
+            validate_paths: Whether to validate that required paths exist
+        """
+        # Environment setup
+        if setup_environment:
+            self._setup_environment()
         
         # Available models
         self.AVAILABLE_MODELS = {
@@ -76,11 +94,19 @@ class Config:
             "Qwen2.5-VL-7B-Instruct": "Qwen/Qwen2.5-VL-7B-Instruct"
         }
         
+        # Validate model selection
+        if model_name not in self.AVAILABLE_MODELS:
+            raise ValueError(f"Model {model_name} not available. Choose from: {list(self.AVAILABLE_MODELS.keys())}")
+        
         # Model selection
-        self.SELECTED_MODEL = "Qwen2-VL-2B-Instruct"
+        self.SELECTED_MODEL = model_name
         
         # Directory setup
-        self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        if base_dir is None:
+            self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        else:
+            self.BASE_DIR = os.path.abspath(base_dir)
+            
         self.DATASET_DIR = os.path.join(self.BASE_DIR, "2025_dataset")
         self.TRAIN_DIR = os.path.join(self.DATASET_DIR, "train")
         self.VAL_DIR = os.path.join(self.DATASET_DIR, "valid")
@@ -90,7 +116,11 @@ class Config:
         self.VAL_IMAGES_DIR = os.path.join(self.VAL_DIR, "images_valid")
         self.TEST_IMAGES_DIR = os.path.join(self.TEST_DIR, "images_test")
         
-        self.OUTPUT_DIR = os.path.join(self.BASE_DIR, "outputs")
+        if output_dir is None:
+            self.OUTPUT_DIR = os.path.join(self.BASE_DIR, "outputs")
+        else:
+            self.OUTPUT_DIR = os.path.abspath(output_dir)
+        print("output!", self.OUTPUT_DIR)
         os.makedirs(self.OUTPUT_DIR, exist_ok=True)
         
         # Data paths
@@ -107,7 +137,7 @@ class Config:
         self.IS_LLAMA = "llama" in self.MODEL_ID.lower()
         self.IS_QWEN = "qwen" in self.MODEL_ID.lower()
         
-        self.HF_TOKEN = os.getenv("HF_TOKEN")
+        self.HF_TOKEN = hf_token or os.getenv("HF_TOKEN")
         
         # Output paths
         self.TIMESTAMP = datetime.datetime.now().strftime("%Y%m%d_%H%M")
@@ -129,172 +159,43 @@ class Config:
         self.PROCESSED_TEST_DATA_DIR = os.path.join(
             self.OUTPUT_DIR, f"processed_test_data-{self.SELECTED_MODEL}-V3"
         )
-
-
-class DataProcessor:
-    """Handles data processing and preparation."""
-    
-    def __init__(self, config):
-        self.config = config
-    
-    def safe_convert_options(self, options_str):
-        """Safely convert a string representation of a list to an actual list."""
-        if not isinstance(options_str, str):
-            return options_str
-            
-        try:
-            return ast.literal_eval(options_str)
-        except (SyntaxError, ValueError):
-            if options_str.startswith('[') and options_str.endswith(']'):
-                return [opt.strip().strip("'\"") for opt in options_str[1:-1].split(',')]
-            elif ',' in options_str:
-                return [opt.strip() for opt in options_str.split(',')]
-            else:
-                return [options_str]
-    
-    def prepare_dataset(self, mode="train"):
-        """Create a dataset for either training or validation data."""
-        print(f"Preparing {mode} dataset...")
         
-        if mode == "train":
-            json_path = self.config.TRAIN_JSON_PATH
-            cvqa_path = self.config.TRAIN_CVQA_PATH
-            images_dir = self.config.TRAIN_IMAGES_DIR
-            output_filename = "train_dataset_processed.csv"
-        elif mode == "val":
-            json_path = self.config.VAL_JSON_PATH
-            cvqa_path = self.config.VAL_CVQA_PATH
-            images_dir = self.config.VAL_IMAGES_DIR
-            output_filename = "val_dataset.csv"
-        else:
-            raise ValueError("Mode must be either 'train' or 'val'")
+        # Validate paths if requested
+        if validate_paths:
+            self.validate_paths()
+    
+    def _setup_environment(self):
+        """Setup environment variables for the pipeline."""
+        load_dotenv()
+        if "TRANSFORMERS_CACHE" in os.environ:
+            print(f"Removing existing TRANSFORMERS_CACHE: {os.environ['TRANSFORMERS_CACHE']}")
+            del os.environ["TRANSFORMERS_CACHE"]
         
-        with open(self.config.QUESTIONS_PATH, 'r') as f:
-            questions = json.load(f)
-            
-        questions_df = pd.json_normalize(questions)[
-            ["qid", "question_en", "options_en", "question_type_en", "question_category_en"]
+        os.environ["HF_HOME"] = os.path.join(os.getcwd(), ".hf_cache")
+        print(f"HF_HOME: {os.getenv('HF_HOME')}")
+    
+    def validate_paths(self):
+        """Validate that required data paths exist."""
+        required_paths = [
+            self.DATASET_DIR,
+            self.TRAIN_DIR,
+            self.VAL_DIR,
+            self.QUESTIONS_PATH,
+            self.TRAIN_JSON_PATH,
+            self.VAL_JSON_PATH,
+            self.TRAIN_CVQA_PATH,
+            self.VAL_CVQA_PATH
         ]
         
-        input_df = pd.read_json(json_path)
-        query_info_df = input_df[
-            ["encounter_id", "image_ids", "query_title_en", "query_content_en", "author_id"]
-        ]
+        missing_paths = []
+        for path in required_paths:
+            if not os.path.exists(path):
+                missing_paths.append(path)
         
-        with open(cvqa_path, 'r') as f:
-            cvqa_data = json.load(f)
-        cvqa_df = pd.json_normalize(cvqa_data)
+        if missing_paths:
+            raise FileNotFoundError(f"Required paths not found: {missing_paths}")
         
-        cvqa_long = cvqa_df.melt(
-            id_vars=["encounter_id"], 
-            var_name="qid", 
-            value_name="answer_index"
-        )
-        
-        cvqa_long = cvqa_long[cvqa_long["qid"] != "encounter_id"]
-        cvqa_merged = cvqa_long.merge(questions_df, on="qid", how="left")
-        
-        def get_answer_text(row):
-            try:
-                return row["options_en"][row["answer_index"]]
-            except (IndexError, TypeError):
-                return None
-        
-        cvqa_merged["answer_text"] = cvqa_merged.apply(get_answer_text, axis=1)
-        final_df = cvqa_merged.merge(query_info_df, on="encounter_id", how="left")
-        final_df['base_qid'] = final_df['qid'].str.extract(r'(CQID\d+)')
-        
-        # Group by family and get valid answers
-        grouped_by_family = final_df.groupby(['encounter_id', 'base_qid']).agg({
-            'qid': list,
-            'question_en': list,
-            'answer_text': list,
-            'answer_index': list,
-            'image_ids': 'first',
-            'options_en': 'first',
-            'question_type_en': 'first',
-            'question_category_en': 'first',
-            'query_title_en': 'first',
-            'query_content_en': 'first',
-            'author_id': 'first'
-        }).reset_index()
-        
-        def get_valid_answers(row):
-            """Extract all valid answers, with special handling for 'Not mentioned'."""
-            answers = row['answer_text']
-            answer_indices = row['answer_index']
-
-            if all(ans == "Not mentioned" for ans in answers):
-                return [["Not mentioned"], [answer_indices[0]]]
-
-            valid_answers = []
-            valid_indices = []
-
-            for i, ans in enumerate(answers):
-                if ans != "Not mentioned":
-                    if isinstance(ans, str):
-                        cleaned_ans = ans.strip("'\" ").replace(" (please specify)", "")
-                        if cleaned_ans not in valid_answers:
-                            valid_answers.append(cleaned_ans)
-                            valid_indices.append(answer_indices[i])
-                    else:
-                        str_ans = str(ans).strip("'\" ")
-                        if str_ans not in valid_answers:
-                            valid_answers.append(str_ans)
-                            valid_indices.append(answer_indices[i])
-
-            return [valid_answers, valid_indices]
-        
-        grouped_by_family[['valid_answers', 'valid_indices']] = grouped_by_family.apply(
-            lambda row: pd.Series(get_valid_answers(row)), axis=1
-        )
-        
-        # Create dataset rows
-        dataset_rows = []
-        
-        for _, row in tqdm(grouped_by_family.iterrows(), desc=f"Creating {mode} dataset"):
-            encounter_id = row['encounter_id']
-            base_qid = row['base_qid']
-            valid_answers = row['valid_answers']
-            valid_indices = row['valid_indices']
-            image_ids = row['image_ids']
-            question_text = row['question_en'][0]
-            query_title = row['query_title_en']
-            query_content = row['query_content_en']
-            author_id = row['author_id']
-            options_en = row['options_en']
-            question_type_en = row['question_type_en']
-            question_category_en = row['question_category_en']
-            
-            for img_id in image_ids:
-                img_path = os.path.join(images_dir, img_id)
-                
-                if not os.path.exists(img_path):
-                    print(f"Warning: Image {img_id} not found at {img_path}")
-                    continue
-                    
-                dataset_rows.append({
-                    'encounter_id': encounter_id,
-                    'base_qid': base_qid,
-                    'image_id': img_id,
-                    'image_path': img_path,
-                    'valid_answers': valid_answers,
-                    'valid_indices': valid_indices,
-                    'question_text': question_text,
-                    'query_title_en': query_title,
-                    'query_content_en': query_content,
-                    'author_id': author_id,
-                    'options_en': options_en,
-                    'question_type_en': question_type_en, 
-                    'question_category_en': question_category_en,
-                    'is_multi_label': len(valid_answers) > 1
-                })
-        
-        dataset = pd.DataFrame(dataset_rows)
-        dataset.to_csv(os.path.join(self.config.OUTPUT_DIR, output_filename), index=False)
-        
-        print(f"{mode.capitalize()} dataset created with {len(dataset)} entries")
-        return dataset
+        return True
 
 
 class ModelManager:
@@ -868,44 +769,52 @@ class TrainingPipeline:
     
     def __init__(self, config):
         self.config = config
-        self.data_processor = DataProcessor(config)
+        self.data_preprocessor = DataPreprocessor(config)
         self.model_manager = ModelManager(config)
         self.inference_manager = InferenceManager(config)
         
-    def prepare_training_data(self, use_combined=False, test_mode=False, min_data_size=10):
+    def prepare_training_data(self, use_combined=False, test_mode=False, min_data_size=10, skip_data_prep=False):
         """Prepare training and validation datasets."""
-        if use_combined:
-            print("Creating combined train+val dataset...")
-            train_df = self.data_processor.prepare_dataset(mode="train")
-            val_df = self.data_processor.prepare_dataset(mode="val")
-            
-            train_df = pd.concat([train_df, val_df], ignore_index=True)
-            val_df = None
-            
-            combined_file = os.path.join(self.config.OUTPUT_DIR, "combined_train_val_dataset.csv")
-            train_df.to_csv(combined_file, index=False)
-            print(f"Combined dataset saved to {combined_file} with {len(train_df)} samples")
-        else:
-            print("Preparing training dataset...")
-            train_df = self.data_processor.prepare_dataset(mode="train")
-            
-            print("Preparing validation dataset...")
-            val_df = self.data_processor.prepare_dataset(mode="val")
+        return self.data_preprocessor.prepare_and_process_datasets(
+            skip_data_prep=skip_data_prep,
+            use_combined_dataset=use_combined,
+            test_mode=test_mode,
+            min_data_size=min_data_size
+        )
+    
+    def process_datasets_to_batches(self, train_df=None, val_df=None, use_combined=False, batch_size=100):
+        """Process datasets into batch files for training."""
+        return self.data_preprocessor.process_all_datasets(
+            train_df=train_df,
+            val_df=val_df,
+            use_combined_dataset=use_combined,
+            batch_size=batch_size
+        )
+    
+    def process_test_dataset(self, batch_size=100):
+        """Process test dataset into batch files."""
+        return self.data_preprocessor.process_test_dataset(batch_size=batch_size)
+    
+    def inspect_processed_data(self, processed_dir=None, num_samples=3, data_type="val"):
+        """Inspect processed data samples."""
+        return self.data_preprocessor.inspect_processed_data(
+            processed_dir=processed_dir,
+            num_samples=num_samples,
+            data_type=data_type
+        )
+    
+    def analyze_dataset_tokens(self, dataset_dir=None, processor=None, num_samples=None, data_type="val"):
+        """Analyze token usage in the dataset."""
+        if processor is None:
+            # Load processor for token analysis
+            _, processor = self.model_manager.load_model_and_processor()
         
-        if test_mode:
-            print("Running in test mode with a small subset of data...")
-            
-            if train_df is not None:
-                test_size = min(min_data_size, len(train_df))
-                train_df = train_df.head(test_size)
-                print(f"Using {len(train_df)} training samples for testing")
-            
-            if val_df is not None:
-                test_size = min(min_data_size, len(val_df))
-                val_df = val_df.head(test_size)
-                print(f"Using {len(val_df)} validation samples for testing")
-        
-        return train_df, val_df
+        return self.data_preprocessor.analyze_dataset_tokens(
+            dataset_dir=dataset_dir,
+            processor=processor,
+            num_samples=num_samples,
+            data_type=data_type
+        )
     
     def create_collate_fn(self, processor, is_qwen, is_llama):
         """Create custom collate function for batching examples."""
@@ -1222,7 +1131,7 @@ class TrainingPipeline:
                 if base_qid not in qid_variants:
                     continue
                 
-                options = self.data_processor.safe_convert_options(row.get('options_en', []))
+                options = self.data_preprocessor.safe_convert_options(row.get('options_en', []))
                 
                 not_mentioned_index = None
                 for i, opt in enumerate(options):
@@ -1291,6 +1200,195 @@ class TrainingPipeline:
         
         print(f"Formatted predictions saved to {output_file} ({len(formatted_predictions)} complete encounters)")
         return formatted_predictions
+
+
+class FineTuningPipeline:
+    """
+    Main wrapper class for easy import and use of the medical vision pipeline.
+    
+    Example usage:
+        from latest_code.finetuning_pipeline import FineTuningPipeline
+        
+        # Initialize pipeline
+        pipeline = FineTuningPipeline(
+            model_name="Qwen2-VL-2B-Instruct",
+            base_dir="/path/to/data",
+            output_dir="/path/to/outputs"
+        )
+        
+        # Train a model
+        trainer = pipeline.train(use_combined=False, test_mode=False)
+        
+        # Run inference
+        predictions = pipeline.run_inference(use_finetuning=True)
+    """
+    
+    def __init__(self, 
+                 model_name="Qwen2-VL-2B-Instruct",
+                 base_dir=None,
+                 output_dir=None,
+                 hf_token=None,
+                 setup_environment=True,
+                 validate_paths=True):
+        """
+        Initialize the Medical Vision Pipeline.
+        
+        Args:
+            model_name: Name of the model to use (default: "Qwen2-VL-2B-Instruct")
+            base_dir: Base directory containing dataset (defaults to current directory)
+            output_dir: Output directory for models and results (defaults to base_dir/outputs)
+            hf_token: HuggingFace token (defaults to environment variable)
+            setup_environment: Whether to setup environment variables (default: True)
+            validate_paths: Whether to validate that required paths exist (default: True)
+        """
+        self.config = Config(
+            model_name=model_name,
+            base_dir=base_dir,
+            output_dir=output_dir,
+            hf_token=hf_token,
+            setup_environment=setup_environment,
+            validate_paths=validate_paths
+        )
+        self.training_pipeline = TrainingPipeline(self.config)
+        
+        print(f"FineTuningPipeline initialized with model: {model_name}")
+        print(f"Base directory: {self.config.BASE_DIR}")
+        print(f"Output directory: {self.config.OUTPUT_DIR}")
+    
+    def get_available_models(self):
+        """Get list of available models."""
+        return list(self.config.AVAILABLE_MODELS.keys())
+    
+    def prepare_data(self, use_combined=False, test_mode=False, min_data_size=10):
+        """
+        Prepare training and validation datasets.
+        
+        Args:
+            use_combined: Whether to combine train and validation data
+            test_mode: Whether to use a small subset for testing
+            min_data_size: Minimum data size when in test mode
+            
+        Returns:
+            Tuple of (train_df, val_df)
+        """
+        return self.training_pipeline.prepare_training_data(
+            use_combined=use_combined,
+            test_mode=test_mode,
+            min_data_size=min_data_size
+        )
+    
+    def train(self, use_combined=False, test_mode=False):
+        """
+        Train the model.
+        
+        Args:
+            use_combined: Whether to combine train and validation data for training
+            test_mode: Whether to run in test mode with small dataset
+            
+        Returns:
+            Trainer object if successful, None if failed
+        """
+        return self.training_pipeline.train(
+            use_combined=use_combined,
+            test_mode=test_mode
+        )
+    
+    def run_inference(self, use_finetuning=True, test_mode=False, max_samples=None):
+        """
+        Run inference on validation or test data.
+        
+        Args:
+            use_finetuning: Whether to use fine-tuned model or base model
+            test_mode: Whether to run on test data instead of validation
+            max_samples: Maximum number of samples to process (None for all)
+            
+        Returns:
+            Tuple of (predictions_df, aggregated_df, formatted_predictions)
+        """
+        return self.training_pipeline.run_inference(
+            use_finetuning=use_finetuning,
+            test_mode=test_mode,
+            max_samples=max_samples
+        )
+    
+    def predict_single(self, image_path, query_text, model_path=None, max_new_tokens=100):
+        """
+        Run prediction on a single image and query.
+        
+        Args:
+            image_path: Path to the image file
+            query_text: Query text for the image
+            model_path: Path to model (defaults to latest fine-tuned model)
+            max_new_tokens: Maximum tokens to generate
+            
+        Returns:
+            Prediction string
+        """
+        if model_path is None:
+            # Find latest checkpoint and merge
+            checkpoint_pattern = os.path.join(
+                self.config.OUTPUT_DIR, "finetuned-model", f"{self.config.MODEL_NAME}_*", "checkpoint-*"
+            )
+            checkpoint_dirs = glob.glob(checkpoint_pattern)
+            
+            if checkpoint_dirs:
+                checkpoint_dirs = sorted(checkpoint_dirs, 
+                                        key=lambda x: int(re.search(r'checkpoint-(\d+)', x).group(1)), 
+                                        reverse=True)
+                checkpoint_path = checkpoint_dirs[0]
+                
+                # Create merged model
+                model_path = self.training_pipeline.inference_manager.merge_lora_model(
+                    checkpoint_path=checkpoint_path,
+                    token=self.config.HF_TOKEN
+                )
+            else:
+                # Use base model
+                model_path = self.config.MODEL_ID
+        
+        # Initialize inference
+        inference = MedicalImageInference(
+            model_path=model_path,
+            token=self.config.HF_TOKEN
+        )
+        
+        return inference.predict(query_text, image_path, max_new_tokens)
+    
+    def evaluate_predictions(self, prediction_file, reference_file=None):
+        """
+        Evaluate predictions against reference.
+        
+        Args:
+            prediction_file: Path to prediction file
+            reference_file: Path to reference file (defaults to validation data)
+            
+        Returns:
+            Evaluation results
+        """
+        if reference_file is None:
+            reference_file = self.config.VAL_CVQA_PATH
+        
+        # Import evaluation script
+        from .evaluation_script import MedicalEvaluator
+        evaluator = MedicalEvaluator()
+        
+        return evaluator.evaluate_predictions(reference_file, prediction_file)
+    
+    def get_config(self):
+        """Get the current configuration."""
+        return self.config
+    
+    def print_system_info(self):
+        """Print system information."""
+        print(f"Python version: {os.sys.version}")
+        print(f"PyTorch version: {torch.__version__}")
+        print(f"CUDA available: {torch.cuda.is_available()}")
+        
+        if torch.cuda.is_available():
+            print(f"CUDA version: {torch.version.cuda}")
+            print(f"CUDA device count: {torch.cuda.device_count()}")
+            print(f"Current CUDA device: {torch.cuda.current_device()}")
+            print(f"CUDA device name: {torch.cuda.get_device_name(0)}")
 
 
 def main():

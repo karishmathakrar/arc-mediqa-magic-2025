@@ -13,6 +13,8 @@ from collections import defaultdict
 import json
 import datetime
 import traceback
+from typing import Optional, Dict, Any, List, Union
+from dataclasses import dataclass
 from PIL import Image
 from dotenv import load_dotenv
 from google import genai
@@ -21,42 +23,59 @@ from google import genai
 class Args:
     """Configuration arguments for the reasoning pipeline."""
     
-    def __init__(self, use_finetuning=False, use_test_dataset=False):
+    def __init__(self, use_finetuning=False, use_test_dataset=False, base_dir=None, output_dir=None, 
+                 model_predictions_dir=None, images_dir=None, dataset_path=None, gemini_model=None):
         """
         Initialize arguments with options for dataset and model type.
         
         Parameters:
         - use_finetuning: Whether to use the fine-tuned model predictions (True) or base model predictions (False)
         - use_test_dataset: Whether to use the test dataset (True) or validation dataset (False)
+        - base_dir: Base directory for the project (defaults to current working directory)
+        - output_dir: Output directory for results (defaults to base_dir/outputs)
+        - model_predictions_dir: Directory containing model predictions (defaults to output_dir/val-base-predictions)
+        - images_dir: Directory containing images (auto-determined based on dataset if not provided)
+        - dataset_path: Path to dataset CSV file (auto-determined based on dataset if not provided)
+        - gemini_model: Gemini model to use (defaults to gemini-2.5-flash-preview-04-17)
         """
         self.use_finetuning = use_finetuning
         self.use_test_dataset = use_test_dataset
         
-        self.base_dir = os.getcwd()
-        self.output_dir = os.path.join(self.base_dir, "outputs")
-        self.model_predictions_dir = os.path.join(self.output_dir, "val-base-predictions")
+        # Set base directory
+        self.base_dir = base_dir or os.getcwd()
         
+        # Set output directory
+        self.output_dir = output_dir or os.path.join(self.base_dir, "outputs")
+        
+        # Set model predictions directory
+        self.model_predictions_dir = model_predictions_dir or self.output_dir
+        
+        # Set dataset-specific configurations
         if self.use_test_dataset:
             self.dataset_name = "test"
-            self.dataset_path = os.path.join(self.output_dir, "test_dataset.csv")
-            self.images_dir = os.path.join(self.base_dir, "2025_dataset", "test", "images_test")
+            self.dataset_path = dataset_path or os.path.join(self.output_dir, "test_dataset.csv")
+            self.images_dir = images_dir or os.path.join(self.base_dir, "2025_dataset", "test", "images_test")
             self.prediction_prefix = "aggregated_test_predictions_"
         else:
             self.dataset_name = "validation"
-            self.dataset_path = os.path.join(self.output_dir, "val_dataset.csv")
-            self.images_dir = os.path.join(self.base_dir, "2025_dataset", "valid", "images_valid")
+            self.dataset_path = dataset_path or os.path.join(self.output_dir, "val_dataset.csv")
+            self.images_dir = images_dir or os.path.join(self.base_dir, "2025_dataset", "valid", "images_valid")
             self.prediction_prefix = "aggregated_predictions_"
         
         self.model_type = "finetuned" if self.use_finetuning else "base"
         
-        self.gemini_model = "gemini-2.5-flash-preview-04-17"
+        self.gemini_model = gemini_model or "gemini-2.5-flash-preview-04-17"
         
         print(f"\nConfiguration initialized:")
+        print(f"- Base directory: {self.base_dir}")
+        print(f"- Output directory: {self.output_dir}")
         print(f"- Using {'test' if self.use_test_dataset else 'validation'} dataset")
         print(f"- Looking for {self.model_type} model predictions")
         print(f"- Dataset path: {self.dataset_path}")
         print(f"- Images directory: {self.images_dir}")
+        print(f"- Model predictions directory: {self.model_predictions_dir}")
         print(f"- Prediction file prefix: {self.prediction_prefix}")
+        print(f"- Gemini model: {self.gemini_model}")
 
 
 class DataLoader:
@@ -1018,6 +1037,177 @@ def main():
     print(f"Total complete encounters processed: {len(formatted_predictions)}")
     
     return 0
+
+
+@dataclass
+class ReasoningConfig:
+    """Configuration for the Reasoning Pipeline."""
+    
+    # Model and dataset configuration
+    use_finetuning: bool = False
+    use_test_dataset: bool = False
+    gemini_model: str = "gemini-2.5-flash-preview-04-17"
+    
+    # Directory paths
+    base_dir: Optional[str] = None
+    output_dir: Optional[str] = None
+    model_predictions_dir: Optional[str] = None
+    images_dir: Optional[str] = None
+    dataset_path: Optional[str] = None
+    
+    # API configuration
+    api_key: Optional[str] = None
+    
+    # Processing options
+    save_intermediate_results: bool = True
+    intermediate_save_frequency: int = 5
+    
+    def to_reasoning_args(self) -> Args:
+        """Convert to Args format."""
+        # Pass all configuration parameters directly to Args constructor
+        args = Args(
+            use_finetuning=self.use_finetuning,
+            use_test_dataset=self.use_test_dataset,
+            base_dir=self.base_dir,
+            output_dir=self.output_dir,
+            model_predictions_dir=self.model_predictions_dir,
+            images_dir=self.images_dir,
+            dataset_path=self.dataset_path,
+            gemini_model=self.gemini_model
+        )
+        
+        return args
+
+
+class ReasoningPipeline:
+    """
+    Main wrapper class for the reasoning-based medical analysis pipeline.
+    
+    This class provides a clean, parameterizable interface for running medical image
+    analysis with structured reasoning using Gemini models.
+    """
+    
+    def __init__(self, config: Optional[ReasoningConfig] = None):
+        """
+        Initialize the reasoning pipeline.
+        
+        Args:
+            config: Configuration object. If None, uses default configuration.
+        """
+        self.config = config or ReasoningConfig()
+        self.args = self.config.to_reasoning_args()
+        self.analysis_service = None
+        self.agentic_data = None
+        self._initialized = False
+        
+    def initialize(self) -> None:
+        """Initialize the pipeline components."""
+        if self._initialized:
+            return
+            
+        # Initialize analysis service
+        self.analysis_service = AnalysisService(
+            api_key=self.config.api_key,
+            args=self.args
+        )
+        
+        # Load data
+        model_predictions_dict = DataLoader.load_all_model_predictions(self.args)
+        
+        if not model_predictions_dict:
+            raise ValueError("No model predictions found. Please check your configuration.")
+            
+        all_models_df = self._concat_model_predictions(model_predictions_dict)
+        dataset_df = DataLoader.load_validation_dataset(self.args)
+        
+        self.agentic_data = AgenticRAGData(all_models_df, dataset_df)
+        self._initialized = True
+        
+    def _concat_model_predictions(self, model_predictions_dict: Dict) -> Any:
+        """Safely concatenate model predictions."""
+        if not model_predictions_dict:
+            raise ValueError("No model predictions to concatenate")
+            
+        return pd.concat(model_predictions_dict.values(), ignore_index=True)
+        
+    def process_single_encounter(self, encounter_id: str) -> Dict[str, Any]:
+        """
+        Process a single encounter with reasoning analysis.
+        
+        Args:
+            encounter_id: The encounter ID to process
+            
+        Returns:
+            Dictionary containing the processed results
+        """
+        if not self._initialized:
+            self.initialize()
+            
+        pipeline = DermatologyPipeline(self.analysis_service)
+        encounter_results = pipeline.process_single_encounter(self.agentic_data, encounter_id)
+        
+        if not encounter_results:
+            raise ValueError(f"No results generated for encounter {encounter_id}")
+            
+        return encounter_results
+        
+    def process_all_encounters(self) -> List[Dict[str, Any]]:
+        """
+        Process all available encounters with reasoning analysis.
+        
+        Returns:
+            List of formatted predictions ready for evaluation
+        """
+        if not self._initialized:
+            self.initialize()
+            
+        all_pairs = self.agentic_data.get_all_encounter_question_pairs()
+        unique_encounter_ids = sorted(list(set(pair[0] for pair in all_pairs)))
+        
+        print(f"Found {len(unique_encounter_ids)} unique encounters to process")
+        
+        pipeline = DermatologyPipeline(self.analysis_service)
+        all_encounter_results = {}
+        
+        for i, encounter_id in enumerate(unique_encounter_ids):
+            print(f"Processing encounter {i+1}/{len(unique_encounter_ids)}: {encounter_id}...")
+            
+            encounter_results = pipeline.process_single_encounter(self.agentic_data, encounter_id)
+            if encounter_results:
+                all_encounter_results.update(encounter_results)
+            
+            # Save intermediate results if configured
+            if (self.config.save_intermediate_results and 
+                ((i+1) % self.config.intermediate_save_frequency == 0 or (i+1) == len(unique_encounter_ids))):
+                self._save_intermediate_results(all_encounter_results, i+1, len(unique_encounter_ids))
+        
+        # Format and save final results
+        return self._format_and_save_final_results(all_encounter_results, unique_encounter_ids)
+    
+    def _save_intermediate_results(self, results: Dict, current: int, total: int) -> None:
+        """Save intermediate results during processing."""
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        intermediate_output_file = os.path.join(
+            self.args.output_dir, 
+            f"intermediate_results_{current}_of_{total}_{timestamp}.json"
+        )
+        with open(intermediate_output_file, 'w') as f:
+            json.dump(results, f, indent=2)
+        print(f"Saved intermediate results after processing {current} encounters")
+    
+    def _format_and_save_final_results(self, all_encounter_results: Dict, unique_encounter_ids: List) -> List[Dict[str, Any]]:
+        """Format and save final results."""
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        output_file = os.path.join(
+            self.args.output_dir, 
+            f"{self.args.dataset_name}_data_cvqa_sys_reasoned_all_{timestamp}.json"
+        )
+        
+        pipeline = DermatologyPipeline(self.analysis_service)
+        formatted_predictions = pipeline.format_results_for_evaluation(all_encounter_results, output_file)
+        
+        print(f"Processed {len(formatted_predictions)} encounters successfully")
+        return formatted_predictions
 
 
 if __name__ == "__main__":

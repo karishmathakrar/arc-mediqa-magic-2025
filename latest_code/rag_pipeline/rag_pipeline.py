@@ -30,51 +30,83 @@ from typing import Dict, List, Tuple, Optional, Any
 class Args:
     """Configuration arguments for the RAG pipeline."""
     
-    def __init__(self, use_finetuning=True, use_test_dataset=True):
+    def __init__(self, use_finetuning=True, use_test_dataset=True, base_dir=None, output_dir=None,
+                 model_predictions_dir=None, images_dir=None, dataset_path=None, gemini_model=None,
+                 max_reflection_cycles=None, confidence_threshold=None, knowledge_db_path=None,
+                 embedding_model=None, cross_encoder_model=None, vector_dimension=None,
+                 top_k_semantic=None, top_k_keyword=None, top_k_hybrid=None, top_k_rerank=None,
+                 dataset_name_huggingface=None, question_type_retrieval_config=None, default_rag_config=None):
         """
         Initialize arguments with options for dataset and model type.
         
         Parameters:
         - use_finetuning: Whether to use the fine-tuned model predictions (True) or base model predictions (False)
         - use_test_dataset: Whether to use the test dataset (True) or validation dataset (False)
+        - base_dir: Base directory for the project (defaults to current working directory)
+        - output_dir: Output directory for results (defaults to base_dir/outputs)
+        - model_predictions_dir: Directory containing model predictions (defaults to output_dir)
+        - images_dir: Directory containing images (auto-determined based on dataset if not provided)
+        - dataset_path: Path to dataset CSV file (auto-determined based on dataset if not provided)
+        - gemini_model: Gemini model to use (defaults to gemini-2.0-flash-exp-2025-01-29)
+        - max_reflection_cycles: Maximum number of reflection cycles (defaults to 2)
+        - confidence_threshold: Confidence threshold for reflection (defaults to 0.75)
+        - knowledge_db_path: Path to knowledge database (defaults to base_dir/knowledge_db)
+        - embedding_model: Embedding model for semantic search (defaults to BioBERT)
+        - cross_encoder_model: Cross-encoder model for reranking (defaults to ms-marco-MiniLM)
+        - vector_dimension: Vector dimension for embeddings (defaults to 768)
+        - top_k_semantic: Top K results for semantic search (defaults to 7)
+        - top_k_keyword: Top K results for keyword search (defaults to 7)
+        - top_k_hybrid: Top K results for hybrid search (defaults to 10)
+        - top_k_rerank: Top K results after reranking (defaults to 5)
+        - dataset_name_huggingface: HuggingFace dataset name (defaults to Skin_diseases_and_care)
+        - question_type_retrieval_config: Configuration for question type retrieval (defaults to predefined config)
+        - default_rag_config: Default RAG configuration (defaults to {"use_rag": True, "weight": 0.4})
         """
         self.use_finetuning = use_finetuning
         self.use_test_dataset = use_test_dataset
         
-        self.base_dir = os.getcwd()
-        self.output_dir = os.path.join(self.base_dir, "outputs")
-        self.model_predictions_dir = os.path.join(self.output_dir, "05022025")
+        # Set base directory
+        self.base_dir = base_dir or os.getcwd()
         
+        # Set output directory
+        self.output_dir = output_dir or os.path.join(self.base_dir, "outputs")
+        
+        # Set model predictions directory
+        self.model_predictions_dir = model_predictions_dir or self.output_dir
+        
+        # Set dataset-specific configurations
         if self.use_test_dataset:
             self.dataset_name = "test"
-            self.dataset_path = os.path.join(self.output_dir, "test_dataset.csv")
-            self.images_dir = os.path.join(self.base_dir, "2025_dataset", "test", "images_test")
+            self.dataset_path = dataset_path or os.path.join(self.output_dir, "test_dataset.csv")
+            self.images_dir = images_dir or os.path.join(self.base_dir, "2025_dataset", "test", "images_test")
             self.prediction_prefix = "aggregated_test_predictions_"
         else:
             self.dataset_name = "validation"
-            self.dataset_path = os.path.join(self.output_dir, "val_dataset.csv")
-            self.images_dir = os.path.join(self.base_dir, "2025_dataset", "valid", "images_valid")
+            self.dataset_path = dataset_path or os.path.join(self.output_dir, "val_dataset.csv")
+            self.images_dir = images_dir or os.path.join(self.base_dir, "2025_dataset", "valid", "images_valid")
             self.prediction_prefix = "aggregated_predictions_"
         
         self.model_type = "finetuned" if self.use_finetuning else "base"
         
-        self.gemini_model = "gemini-2.0-flash-exp-2025-01-29"
+        # Model and processing configuration
+        self.gemini_model = gemini_model or "gemini-2.5-flash-preview-04-17"
+        self.max_reflection_cycles = max_reflection_cycles or 2
+        self.confidence_threshold = confidence_threshold or 0.75
         
-        self.max_reflection_cycles = 2
-        self.confidence_threshold = 0.75
+        # Knowledge base configuration
+        self.knowledge_db_path = knowledge_db_path or os.path.join(self.base_dir, "knowledge_db")
+        self.embedding_model = embedding_model or "pritamdeka/BioBERT-mnli-snli-scinli-scitail-mednli-stsb"
+        self.cross_encoder_model = cross_encoder_model or "cross-encoder/ms-marco-MiniLM-L-6-v2"
+        self.vector_dimension = vector_dimension or 768
+        self.top_k_semantic = top_k_semantic or 7
+        self.top_k_keyword = top_k_keyword or 7
+        self.top_k_hybrid = top_k_hybrid or 10
+        self.top_k_rerank = top_k_rerank or 5
         
-        self.knowledge_db_path = os.path.join(self.base_dir, "knowledge_db")
-        self.embedding_model = "pritamdeka/BioBERT-mnli-snli-scinli-scitail-mednli-stsb"
-        self.cross_encoder_model = "cross-encoder/ms-marco-MiniLM-L-6-v2"
-        self.vector_dimension = 768
-        self.top_k_semantic = 7
-        self.top_k_keyword = 7
-        self.top_k_hybrid = 10
-        self.top_k_rerank = 5
+        self.dataset_name_huggingface = dataset_name_huggingface or "brucewayne0459/Skin_diseases_and_care"
         
-        self.dataset_name_huggingface = "brucewayne0459/Skin_diseases_and_care"
-        
-        self.question_type_retrieval_config = {
+        # Question type retrieval configuration
+        self.question_type_retrieval_config = question_type_retrieval_config or {
             "Site Location": {"use_rag": False, "weight": 0.2},
             "Lesion Color": {"use_rag": False, "weight": 0.2},
             "Size": {"use_rag": False, "weight": 0.1},
@@ -90,14 +122,21 @@ class Args:
             "Specific Diagnosis": {"use_rag": True, "weight": 0.8},
         }
         
-        self.default_rag_config = {"use_rag": True, "weight": 0.4}
+        self.default_rag_config = default_rag_config or {"use_rag": True, "weight": 0.4}
         
-        print(f"\nConfiguration initialized:")
+        print(f"\nRAG Pipeline Configuration initialized:")
+        print(f"- Base directory: {self.base_dir}")
+        print(f"- Output directory: {self.output_dir}")
         print(f"- Using {'test' if self.use_test_dataset else 'validation'} dataset")
         print(f"- Looking for {self.model_type} model predictions")
         print(f"- Dataset path: {self.dataset_path}")
         print(f"- Images directory: {self.images_dir}")
+        print(f"- Model predictions directory: {self.model_predictions_dir}")
         print(f"- Prediction file prefix: {self.prediction_prefix}")
+        print(f"- Gemini model: {self.gemini_model}")
+        print(f"- Knowledge DB path: {self.knowledge_db_path}")
+        print(f"- Max reflection cycles: {self.max_reflection_cycles}")
+        print(f"- Confidence threshold: {self.confidence_threshold}")
 
 
 class DataLoader:
@@ -1571,6 +1610,301 @@ def run_diagnosis_based_pipeline_sample(args=None, num_samples=3):
     print(f"Processed {len(sample_results)} encounters")
     
     return sample_results
+
+
+# Parameterizable Wrapper Classes
+from dataclasses import dataclass
+
+
+@dataclass
+class RAGConfig:
+    """Configuration for the RAG Pipeline."""
+    
+    # Model and dataset configuration
+    use_finetuning: bool = True
+    use_test_dataset: bool = True
+    gemini_model: str = "gemini-2.5-flash-preview-04-17"
+    
+    # Directory paths
+    base_dir: Optional[str] = None
+    output_dir: Optional[str] = None
+    model_predictions_dir: Optional[str] = None
+    images_dir: Optional[str] = None
+    dataset_path: Optional[str] = None
+    
+    # API configuration
+    api_key: Optional[str] = None
+    
+    # Processing options
+    max_reflection_cycles: int = 2
+    confidence_threshold: float = 0.75
+    save_intermediate_results: bool = True
+    intermediate_save_frequency: int = 5
+    
+    # Knowledge base configuration
+    knowledge_db_path: Optional[str] = None
+    embedding_model: str = "pritamdeka/BioBERT-mnli-snli-scinli-scitail-mednli-stsb"
+    cross_encoder_model: str = "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    vector_dimension: int = 768
+    top_k_semantic: int = 7
+    top_k_keyword: int = 7
+    top_k_hybrid: int = 10
+    top_k_rerank: int = 5
+    
+    # Dataset configuration
+    dataset_name_huggingface: str = "brucewayne0459/Skin_diseases_and_care"
+    
+    # Question type retrieval configuration
+    question_type_retrieval_config: Optional[Dict[str, Dict[str, Any]]] = None
+    default_rag_config: Optional[Dict[str, Any]] = None
+    
+    def to_rag_args(self) -> Args:
+        """Convert to Args format."""
+        # Set default configurations if not provided
+        if self.question_type_retrieval_config is None:
+            self.question_type_retrieval_config = {
+                "Site Location": {"use_rag": False, "weight": 0.2},
+                "Lesion Color": {"use_rag": False, "weight": 0.2},
+                "Size": {"use_rag": False, "weight": 0.1},
+                "Skin Description": {"use_rag": True, "weight": 0.3},
+                "Onset": {"use_rag": True, "weight": 0.4},
+                "Itch": {"use_rag": True, "weight": 0.4},
+                "Extent": {"use_rag": False, "weight": 0.2},
+                "Treatment": {"use_rag": True, "weight": 0.7},
+                "Lesion Evolution": {"use_rag": True, "weight": 0.5},
+                "Texture": {"use_rag": True, "weight": 0.3},
+                "Lesion Count": {"use_rag": False, "weight": 0.1},
+                "Differential": {"use_rag": True, "weight": 0.8},
+                "Specific Diagnosis": {"use_rag": True, "weight": 0.8},
+            }
+        
+        if self.default_rag_config is None:
+            self.default_rag_config = {"use_rag": True, "weight": 0.4}
+        
+        # Pass all configuration parameters directly to Args constructor
+        args = Args(
+            use_finetuning=self.use_finetuning,
+            use_test_dataset=self.use_test_dataset,
+            base_dir=self.base_dir,
+            output_dir=self.output_dir,
+            model_predictions_dir=self.model_predictions_dir,
+            images_dir=self.images_dir,
+            dataset_path=self.dataset_path,
+            gemini_model=self.gemini_model,
+            max_reflection_cycles=self.max_reflection_cycles,
+            confidence_threshold=self.confidence_threshold,
+            knowledge_db_path=self.knowledge_db_path,
+            embedding_model=self.embedding_model,
+            cross_encoder_model=self.cross_encoder_model,
+            vector_dimension=self.vector_dimension,
+            top_k_semantic=self.top_k_semantic,
+            top_k_keyword=self.top_k_keyword,
+            top_k_hybrid=self.top_k_hybrid,
+            top_k_rerank=self.top_k_rerank,
+            dataset_name_huggingface=self.dataset_name_huggingface,
+            question_type_retrieval_config=self.question_type_retrieval_config,
+            default_rag_config=self.default_rag_config
+        )
+        
+        return args
+
+
+class RAGPipeline:
+    """
+    Main wrapper class for the diagnosis-based RAG medical analysis pipeline.
+    
+    This class provides a clean, parameterizable interface for running medical image
+    analysis with knowledge retrieval, self-reflection, and multi-cycle reasoning.
+    """
+    
+    def __init__(self, config: Optional[RAGConfig] = None):
+        """
+        Initialize the RAG pipeline.
+        
+        Args:
+            config: Configuration object. If None, uses default configuration.
+        """
+        self.config = config or RAGConfig()
+        self.args = self.config.to_rag_args()
+        self.pipeline = None
+        self.agentic_data = None
+        self._initialized = False
+        
+    def initialize(self) -> None:
+        """Initialize the pipeline components."""
+        if self._initialized:
+            return
+            
+        # Load environment variables for API key
+        load_dotenv()
+        
+        # Initialize the main pipeline
+        self.pipeline = AgenticDermatologyPipeline(
+            api_key=self.config.api_key,
+            args=self.args
+        )
+        
+        # Load data
+        model_predictions_dict = DataLoader.load_all_model_predictions(self.args)
+        
+        if not model_predictions_dict:
+            raise ValueError("No model predictions found. Please check your configuration.")
+            
+        all_models_df = self._concat_model_predictions(model_predictions_dict)
+        dataset_df = DataLoader.load_validation_dataset(self.args)
+        
+        self.agentic_data = AgenticRAGData(all_models_df, dataset_df)
+        self._initialized = True
+        
+    def _concat_model_predictions(self, model_predictions_dict: Dict) -> Any:
+        """Safely concatenate model predictions."""
+        if not model_predictions_dict:
+            raise ValueError("No model predictions to concatenate")
+            
+        return pd.concat(model_predictions_dict.values(), ignore_index=True)
+        
+    def process_single_encounter(self, encounter_id: str) -> Dict[str, Any]:
+        """
+        Process a single encounter with RAG analysis.
+        
+        Args:
+            encounter_id: The encounter ID to process
+            
+        Returns:
+            Dictionary containing the processed results
+        """
+        if not self._initialized:
+            self.initialize()
+            
+        encounter_results = self.pipeline.process_single_encounter(self.agentic_data, encounter_id)
+        
+        if not encounter_results:
+            raise ValueError(f"No results generated for encounter {encounter_id}")
+            
+        return encounter_results
+        
+    def process_all_encounters(self) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+        """
+        Process all available encounters with RAG analysis.
+        
+        Returns:
+            Tuple of (complete_results, formatted_predictions)
+        """
+        if not self._initialized:
+            self.initialize()
+            
+        all_pairs = self.agentic_data.get_all_encounter_question_pairs()
+        unique_encounter_ids = sorted(list(set(pair[0] for pair in all_pairs)))
+        
+        print(f"Found {len(unique_encounter_ids)} unique encounters to process")
+        
+        all_encounter_results = {}
+        
+        for i, encounter_id in enumerate(unique_encounter_ids):
+            print(f"Processing encounter {i+1}/{len(unique_encounter_ids)}: {encounter_id}...")
+            
+            try:
+                encounter_results = self.pipeline.process_single_encounter(self.agentic_data, encounter_id)
+                if encounter_results:
+                    all_encounter_results.update(encounter_results)
+                
+                # Save intermediate results if configured
+                if (self.config.save_intermediate_results and 
+                    ((i+1) % self.config.intermediate_save_frequency == 0 or (i+1) == len(unique_encounter_ids))):
+                    self._save_intermediate_results(all_encounter_results, i+1, len(unique_encounter_ids))
+                    
+            except Exception as e:
+                print(f"Error processing encounter {encounter_id}: {e}")
+                continue
+        
+        # Format and save final results
+        return self._format_and_save_final_results(all_encounter_results, unique_encounter_ids)
+    
+    def process_sample_encounters(self, num_samples: int = 3) -> Dict[str, Any]:
+        """
+        Process a sample of encounters for testing.
+        
+        Args:
+            num_samples: Number of encounters to sample
+            
+        Returns:
+            Dictionary containing the processed sample results
+        """
+        if not self._initialized:
+            self.initialize()
+            
+        all_pairs = self.agentic_data.get_all_encounter_question_pairs()
+        unique_encounter_ids = sorted(list(set(pair[0] for pair in all_pairs)))
+        
+        # Sample random encounters
+        sample_encounter_ids = random.sample(unique_encounter_ids, min(num_samples, len(unique_encounter_ids)))
+        print(f"Processing {len(sample_encounter_ids)} sample encounters: {sample_encounter_ids}")
+        
+        sample_results = {}
+        
+        for encounter_id in sample_encounter_ids:
+            print(f"Processing sample encounter: {encounter_id}")
+            
+            try:
+                encounter_results = self.pipeline.process_single_encounter(self.agentic_data, encounter_id)
+                if encounter_results:
+                    sample_results.update(encounter_results)
+                    
+            except Exception as e:
+                print(f"Error processing encounter {encounter_id}: {e}")
+                continue
+        
+        # Save sample results
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        sample_output_file = os.path.join(
+            self.args.output_dir,
+            f"rag_sample_results_{timestamp}.json"
+        )
+        
+        with open(sample_output_file, "w") as f:
+            json.dump(sample_results, f, indent=2)
+        
+        print(f"Sample results saved to: {sample_output_file}")
+        print(f"Processed {len(sample_results)} encounters")
+        
+        return sample_results
+    
+    def _save_intermediate_results(self, results: Dict, current: int, total: int) -> None:
+        """Save intermediate results during processing."""
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        intermediate_output_file = os.path.join(
+            self.args.output_dir, 
+            f"rag_intermediate_results_{current}_of_{total}_{timestamp}.json"
+        )
+        with open(intermediate_output_file, 'w') as f:
+            json.dump(results, f, indent=2)
+        print(f"Saved intermediate results after processing {current} encounters")
+    
+    def _format_and_save_final_results(self, all_encounter_results: Dict, unique_encounter_ids: List) -> Tuple[Dict[str, Any], List[Dict[str, Any]]]:
+        """Format and save final results."""
+        timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
+        
+        # Save complete results
+        complete_output_file = os.path.join(
+            self.args.output_dir, 
+            f"{self.args.dataset_name}_data_cvqa_rag_complete_{timestamp}.json"
+        )
+        with open(complete_output_file, 'w') as f:
+            json.dump(all_encounter_results, f, indent=2)
+        
+        # Format for evaluation
+        formatted_output_file = os.path.join(
+            self.args.output_dir, 
+            f"{self.args.dataset_name}_data_cvqa_rag_formatted_{timestamp}.json"
+        )
+        
+        formatted_predictions = self.pipeline.format_results_for_evaluation(all_encounter_results, formatted_output_file)
+        
+        print(f"Complete results saved to: {complete_output_file}")
+        print(f"Formatted predictions saved to: {formatted_output_file}")
+        print(f"Processed {len(formatted_predictions)} encounters successfully")
+        
+        return all_encounter_results, formatted_predictions
 
 
 if __name__ == "__main__":
