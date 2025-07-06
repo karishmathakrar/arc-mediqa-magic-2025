@@ -102,13 +102,12 @@ def example_process_single_encounter():
     print("6. Generate final answers")
     print()
     
-    # Uncomment the following lines to actually run the pipeline:
-#     try:
-#         results = pipeline.process_single_encounter(encounter_id)
-#         print(f"Successfully processed encounter {encounter_id}")
-#         print(f"Results contain {len(results[encounter_id])} questions")
-#     except Exception as e:
-#         print(f"Error processing encounter: {e}")
+    try:
+        results = pipeline.process_single_encounter(encounter_id)
+        print(f"Successfully processed encounter {encounter_id}")
+        print(f"Results contain {len(results[encounter_id])} questions")
+    except Exception as e:
+        print(f"Error processing encounter: {e}")
 
 
 def example_process_sample_encounters():
@@ -139,12 +138,11 @@ def example_process_sample_encounters():
     print("- Quick experimentation with parameters")
     print()
     
-    # Uncomment the following lines to actually run the pipeline:
-#     try:
-#         results = pipeline.process_sample_encounters(num_samples)
-#         print(f"Successfully processed {len(results)} sample encounters")
-#     except Exception as e:
-#         print(f"Error processing samples: {e}")
+    try:
+        results = pipeline.process_sample_encounters(num_samples)
+        print(f"Successfully processed {len(results)} sample encounters")
+    except Exception as e:
+        print(f"Error processing samples: {e}")
 
 
 def example_process_all_encounters():
@@ -184,15 +182,14 @@ def example_process_all_encounters():
     print("- Formatted predictions for evaluation")
     print("- Intermediate checkpoint files")
     print()
-    
-    # Uncomment the following lines to actually run the pipeline:
-#     try:
-#         complete_results, formatted_predictions = pipeline.process_all_encounters()
-#         print(f"Successfully processed all encounters")
-#         print(f"Complete results: {len(complete_results)} encounters")
-#         print(f"Formatted predictions: {len(formatted_predictions)} encounters")
-#     except Exception as e:
-#         print(f"Error processing all encounters: {e}")
+
+    try:
+        complete_results, formatted_predictions = pipeline.process_all_encounters()
+        print(f"Successfully processed all encounters")
+        print(f"Complete results: {len(complete_results)} encounters")
+        print(f"Formatted predictions: {len(formatted_predictions)} encounters")
+    except Exception as e:
+        print(f"Error processing all encounters: {e}")
 
 
 def example_custom_knowledge_configuration():
@@ -303,10 +300,9 @@ def main():
         print("All examples completed successfully!")
         print()
         print("To actually run the pipeline:")
-        print("1. Uncomment the pipeline execution lines in the examples")
-        print("2. Ensure you have the required data files and API keys")
-        print("3. Install required dependencies (see requirements.txt)")
-        print("4. Run the specific example you want to test")
+        print("1. Ensure you have the required data files and API keys")
+        print("2. Install required dependencies (see requirements.txt)")
+        print("3. Run the specific example you want to test")
         
     except Exception as e:
         print(f"Error running examples: {e}")
