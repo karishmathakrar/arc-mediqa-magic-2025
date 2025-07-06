@@ -8,12 +8,13 @@ for diagnosis-based medical analysis with knowledge retrieval.
 
 import os
 import sys
-from pathlib import Path
 
-# Add the parent directory to the path so we can import from latest_code
-sys.path.append(str(Path(__file__).parent.parent.parent))
+base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from latest_code.rag_pipeline import RAGConfig, RAGPipeline
+# Add latest_code/ to sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from rag_pipeline import RAGConfig, RAGPipeline
 
 
 def example_basic_usage():
@@ -21,7 +22,10 @@ def example_basic_usage():
     print("=== Example 1: Basic RAG Pipeline Usage ===")
     
     # Create a basic configuration
-    config = RAGConfig()
+    config = RAGConfig(
+        base_dir=base_dir,
+        output_dir=f"{base_dir}/outputs"
+    )
     
     # Initialize the pipeline
     pipeline = RAGPipeline(config)
@@ -53,9 +57,9 @@ def example_custom_configuration():
         top_k_keyword=10,
         top_k_hybrid=15,
         top_k_rerank=7,
-        # Custom paths
-        base_dir="/custom/path/to/project",
-        output_dir="/custom/path/to/outputs"
+        # Use consistent base directory
+        base_dir=base_dir,
+        output_dir=f"{base_dir}/outputs"
     )
     
     print(f"Custom configuration created:")
@@ -77,7 +81,9 @@ def example_process_single_encounter():
     # Create configuration
     config = RAGConfig(
         use_test_dataset=False,  # Use validation for testing
-        save_intermediate_results=True
+        save_intermediate_results=True,
+        base_dir=base_dir,
+        output_dir=f"{base_dir}/outputs"
     )
     
     # Initialize pipeline
@@ -115,7 +121,9 @@ def example_process_sample_encounters():
         max_reflection_cycles=2,
         confidence_threshold=0.7,
         save_intermediate_results=True,
-        intermediate_save_frequency=2
+        intermediate_save_frequency=2,
+        base_dir=base_dir,
+        output_dir=f"{base_dir}/outputs"
     )
     
     # Initialize pipeline
@@ -156,7 +164,9 @@ def example_process_all_encounters():
         top_k_semantic=7,
         top_k_keyword=7,
         top_k_hybrid=10,
-        top_k_rerank=5
+        top_k_rerank=5,
+        base_dir=base_dir,
+        output_dir=f"{base_dir}/outputs"
     )
     
     # Initialize pipeline
@@ -218,7 +228,9 @@ def example_custom_knowledge_configuration():
         dataset_name_huggingface="brucewayne0459/Skin_diseases_and_care",
         # Custom retrieval configuration
         question_type_retrieval_config=custom_retrieval_config,
-        default_rag_config={"use_rag": True, "weight": 0.5}
+        default_rag_config={"use_rag": True, "weight": 0.5},
+        base_dir=base_dir,
+        output_dir=f"{base_dir}/outputs"
     )
     
     print("Custom knowledge configuration:")
