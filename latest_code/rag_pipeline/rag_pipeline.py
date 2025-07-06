@@ -44,7 +44,7 @@ class Args:
         - use_test_dataset: Whether to use the test dataset (True) or validation dataset (False)
         - base_dir: Base directory for the project (defaults to current working directory)
         - output_dir: Output directory for results (defaults to base_dir/outputs)
-        - model_predictions_dir: Directory containing model predictions (defaults to output_dir/05022025)
+        - model_predictions_dir: Directory containing model predictions (defaults to output_dir)
         - images_dir: Directory containing images (auto-determined based on dataset if not provided)
         - dataset_path: Path to dataset CSV file (auto-determined based on dataset if not provided)
         - gemini_model: Gemini model to use (defaults to gemini-2.0-flash-exp-2025-01-29)
@@ -72,7 +72,7 @@ class Args:
         self.output_dir = output_dir or os.path.join(self.base_dir, "outputs")
         
         # Set model predictions directory
-        self.model_predictions_dir = model_predictions_dir or os.path.join(self.output_dir, "05022025")
+        self.model_predictions_dir = model_predictions_dir or self.output_dir
         
         # Set dataset-specific configurations
         if self.use_test_dataset:
@@ -89,7 +89,7 @@ class Args:
         self.model_type = "finetuned" if self.use_finetuning else "base"
         
         # Model and processing configuration
-        self.gemini_model = gemini_model or "gemini-2.0-flash-exp-2025-01-29"
+        self.gemini_model = gemini_model or "gemini-2.5-flash-preview-04-17"
         self.max_reflection_cycles = max_reflection_cycles or 2
         self.confidence_threshold = confidence_threshold or 0.75
         
@@ -1623,7 +1623,7 @@ class RAGConfig:
     # Model and dataset configuration
     use_finetuning: bool = True
     use_test_dataset: bool = True
-    gemini_model: str = "gemini-2.0-flash-exp-2025-01-29"
+    gemini_model: str = "gemini-2.5-flash-preview-04-17"
     
     # Directory paths
     base_dir: Optional[str] = None
