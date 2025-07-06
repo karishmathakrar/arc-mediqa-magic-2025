@@ -48,7 +48,7 @@ class Args:
         self.output_dir = output_dir or os.path.join(self.base_dir, "outputs")
         
         # Set model predictions directory
-        self.model_predictions_dir = model_predictions_dir or os.path.join(self.output_dir, "val-base-predictions")
+        self.model_predictions_dir = model_predictions_dir or self.output_dir
         
         # Set dataset-specific configurations
         if self.use_test_dataset:

@@ -9,8 +9,9 @@ for medical image analysis with structured reasoning.
 import os
 import sys
 
-# Get base directory (same pattern as finetuning pipeline example)
+
 base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+print(base_dir)
 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 print(f"Base directory: {base_dir}")
@@ -54,7 +55,7 @@ def example_custom_configuration():
         
         # Create custom configuration
         config = ReasoningConfig(
-            use_finetuning=False,
+            use_finetuning=True,
             use_test_dataset=False,
             gemini_model="gemini-2.5-flash-preview-04-17",
             base_dir=base_dir,
@@ -86,7 +87,7 @@ def example_test_dataset_usage():
         
         # Configuration for test dataset
         config = ReasoningConfig(
-            use_finetuning=False,
+            use_finetuning=True,
             use_test_dataset=True,  # Use test dataset instead of validation
             base_dir=base_dir,
             output_dir=f"{base_dir}/outputs",
@@ -142,7 +143,7 @@ def example_step_by_step_usage():
         
         # Create configuration
         config = ReasoningConfig(
-            use_finetuning=False,
+            use_finetuning=True,
             use_test_dataset=False,
             base_dir=base_dir,
             output_dir=f"{base_dir}/outputs"
@@ -177,7 +178,7 @@ def example_single_encounter_processing():
         
         # Create configuration
         config = ReasoningConfig(
-            use_finetuning=False,
+            use_finetuning=True,
             use_test_dataset=False,
             base_dir=base_dir,
             output_dir=f"{base_dir}/outputs"
@@ -214,7 +215,7 @@ def example_all_encounters_processing():
         
         # Create configuration with frequent intermediate saves for demo
         config = ReasoningConfig(
-            use_finetuning=False,
+            use_finetuning=True,
             use_test_dataset=False,
             base_dir=base_dir,
             output_dir=f"{base_dir}/outputs",
@@ -253,7 +254,7 @@ def example_configuration_validation():
             config = ReasoningConfig(
                 base_dir=base_dir,
                 output_dir=f"{base_dir}/outputs",
-                use_finetuning=False,
+                use_finetuning=True,
                 use_test_dataset=False
             )
             args = config.to_reasoning_args()
@@ -283,41 +284,6 @@ def example_configuration_validation():
         print(f"Error in configuration validation: {e}")
 
 
-def example_directory_structure_check():
-    """Example of checking directory structure."""
-    print("\n=== Example 9: Directory Structure Check ===")
-    
-    print("Checking expected directory structure...")
-    
-    # Check base directories
-    directories_to_check = [
-        base_dir,
-        f"{base_dir}/outputs",
-        f"{base_dir}/2025_dataset",
-        f"{base_dir}/2025_dataset/valid",
-        f"{base_dir}/2025_dataset/valid/images_valid",
-        f"{base_dir}/2025_dataset/test",
-        f"{base_dir}/.env"
-    ]
-    
-    for directory in directories_to_check:
-        if os.path.exists(directory):
-            if os.path.isfile(directory):
-                print(f"✓ File exists: {directory}")
-            else:
-                print(f"✓ Directory exists: {directory}")
-        else:
-            print(f"✗ Missing: {directory}")
-    
-    # Check for model predictions
-    predictions_dir = f"{base_dir}/outputs/val-base-predictions"
-    if os.path.exists(predictions_dir):
-        prediction_files = os.listdir(predictions_dir)
-        print(f"✓ Model predictions directory exists with {len(prediction_files)} files")
-    else:
-        print(f"✗ Model predictions directory missing: {predictions_dir}")
-
-
 def main():
     """Run all comprehensive examples."""
     print("ReasoningPipeline Wrapper - Comprehensive Usage Examples")
@@ -333,7 +299,6 @@ def main():
         example_single_encounter_processing,
         example_all_encounters_processing,
         example_configuration_validation,
-        example_directory_structure_check
     ]
     
     for example_func in examples:
