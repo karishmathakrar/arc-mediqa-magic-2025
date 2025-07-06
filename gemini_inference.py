@@ -16,6 +16,7 @@ from tqdm.auto import tqdm
 from PIL import Image
 import pandas as pd
 from dotenv import load_dotenv
+import time
 
 # Load environment variables
 load_dotenv()
@@ -33,7 +34,7 @@ from finetuning_pipeline.pipeline import Config
 class GeminiInference:
     """Handles inference using Gemini 2.5 Flash with exact BASE model prompting."""
     
-    def __init__(self, api_key=None, model_name="gemini-2.5-flash-04-17"):
+    def __init__(self, api_key=None, model_name="gemini-2.5-flash-preview-04-17"):
         """
         Initialize Gemini inference.
         
@@ -163,6 +164,7 @@ class GeminiInference:
             
             for sample in tqdm(batch_data, desc=f"Predicting {batch_file}", leave=False):
                 prediction = self.predict(sample["query_text"], sample["image_path"])
+                time.sleep(1)
                 
                 results.append({
                     "encounter_id": sample.get("encounter_id", sample.get("id", "")),
