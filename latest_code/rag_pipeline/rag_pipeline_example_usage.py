@@ -103,12 +103,12 @@ def example_process_single_encounter():
     print()
     
     # Uncomment the following lines to actually run the pipeline:
-    # try:
-    #     results = pipeline.process_single_encounter(encounter_id)
-    #     print(f"Successfully processed encounter {encounter_id}")
-    #     print(f"Results contain {len(results[encounter_id])} questions")
-    # except Exception as e:
-    #     print(f"Error processing encounter: {e}")
+#     try:
+#         results = pipeline.process_single_encounter(encounter_id)
+#         print(f"Successfully processed encounter {encounter_id}")
+#         print(f"Results contain {len(results[encounter_id])} questions")
+#     except Exception as e:
+#         print(f"Error processing encounter: {e}")
 
 
 def example_process_sample_encounters():
@@ -140,11 +140,11 @@ def example_process_sample_encounters():
     print()
     
     # Uncomment the following lines to actually run the pipeline:
-    # try:
-    #     results = pipeline.process_sample_encounters(num_samples)
-    #     print(f"Successfully processed {len(results)} sample encounters")
-    # except Exception as e:
-    #     print(f"Error processing samples: {e}")
+#     try:
+#         results = pipeline.process_sample_encounters(num_samples)
+#         print(f"Successfully processed {len(results)} sample encounters")
+#     except Exception as e:
+#         print(f"Error processing samples: {e}")
 
 
 def example_process_all_encounters():
@@ -155,7 +155,7 @@ def example_process_all_encounters():
     config = RAGConfig(
         use_finetuning=True,
         use_test_dataset=True,  # Use test dataset for final predictions
-        gemini_model="gemini-2.0-flash-exp-2025-01-29",
+        gemini_model="gemini-2.5-flash-preview-04-17",
         max_reflection_cycles=2,
         confidence_threshold=0.75,
         save_intermediate_results=True,
@@ -186,13 +186,13 @@ def example_process_all_encounters():
     print()
     
     # Uncomment the following lines to actually run the pipeline:
-    # try:
-    #     complete_results, formatted_predictions = pipeline.process_all_encounters()
-    #     print(f"Successfully processed all encounters")
-    #     print(f"Complete results: {len(complete_results)} encounters")
-    #     print(f"Formatted predictions: {len(formatted_predictions)} encounters")
-    # except Exception as e:
-    #     print(f"Error processing all encounters: {e}")
+#     try:
+#         complete_results, formatted_predictions = pipeline.process_all_encounters()
+#         print(f"Successfully processed all encounters")
+#         print(f"Complete results: {len(complete_results)} encounters")
+#         print(f"Formatted predictions: {len(formatted_predictions)} encounters")
+#     except Exception as e:
+#         print(f"Error processing all encounters: {e}")
 
 
 def example_custom_knowledge_configuration():
