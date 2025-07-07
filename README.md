@@ -1,11 +1,12 @@
-# MEDIQA-Magic v2: Medical Image Question Answering Pipeline
+# MEDIQA-Magic 2025: Medical Image Question Answering Pipeline
+## Applied Research Competitions at Georgia Tech
 
 A comprehensive medical image analysis pipeline for dermatological question answering using multi-modal large language models, featuring fine-tuning, reasoning layers, and agentic RAG systems.
 
 ## 🏗️ Repository Structure
 
 ```
-mediqa-magic-v2/
+arc-mediqa-magic-2025/
 ├── 📁 Core Pipeline Components
 │   ├── finetuning_pipeline/           # Modular fine-tuning pipeline
 │   │   ├── pipeline.py                # Complete training and inference pipeline
@@ -47,8 +48,8 @@ mediqa-magic-v2/
 
 1. **Clone the repository:**
 ```bash
-git clone https://github.com/karishmathakrar/mediqa-magic-v2.git
-cd mediqa-magic-v2
+git clone https://github.com/karishmathakrar/arc-mediqa-magic-2025.git
+cd arc-mediqa-magic-2025
 ```
 
 2. **Set up environment:**
