@@ -9,10 +9,8 @@ for diagnosis-based medical analysis with knowledge retrieval.
 import os
 import sys
 
-base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Add latest_code/ to sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(base_dir)
 
 from rag_pipeline import RAGConfig, RAGPipeline
 

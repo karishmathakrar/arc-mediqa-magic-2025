@@ -18,17 +18,9 @@ import pandas as pd
 from dotenv import load_dotenv
 import time
 
-# Load environment variables
 load_dotenv()
 
-# Import Gemini
 from google import genai
-
-# Add latest_code to path
-sys.path.append(os.path.join(os.path.dirname(__file__), 'latest_code'))
-
-from data_preprocessor import DataPreprocessor
-from finetuning_pipeline.pipeline import Config
 
 
 class GeminiInference:
@@ -52,6 +44,31 @@ class GeminiInference:
         self.model_name = model_name
         print(f"Initialized Gemini inference with model: {model_name}")
     
+    def fix_image_path(self, image_path):
+        """
+        Attempt to fix image path if it doesn't exist.
+        Tries to find the image in common locations.
+        """
+        if os.path.exists(image_path):
+            return image_path
+        
+        filename = os.path.basename(image_path)
+        
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        possible_paths = [
+            os.path.join(base_dir, "2025_dataset", "valid", "images_valid", filename),
+            os.path.join(base_dir, "dataset", "valid", "images_valid", filename),
+            os.path.join(base_dir, "data", "valid", "images_valid", filename),
+            os.path.join(base_dir, "images_valid", filename),
+            os.path.join(base_dir, "valid", "images_valid", filename),
+        ]
+        
+        for path in possible_paths:
+            if os.path.exists(path):
+                return path
+        
+        return image_path
+    
     def predict(self, query_text, image_path, max_new_tokens=100):
         """
         Generate prediction for a single query and image using EXACT BASE model prompting.
@@ -60,10 +77,10 @@ class GeminiInference:
         finetuning_pipeline/pipeline.py MedicalImageInference.predict() method.
         """
         try:
-            # Load image
+            image_path = self.fix_image_path(image_path)
+            
             image = Image.open(image_path).convert("RGB")
             
-            # EXACT system message from BASE model prompting in finetuning pipeline
             system_message = """You are a medical assistant. Your task is to examine the provided information, and select the option(s) that best answer my question.
 
             IMPORTANT: 
@@ -78,10 +95,8 @@ class GeminiInference:
             - ONLY answer the question listed under "MAIN QUESTION TO ANSWER:" at the beginning
             """
             
-            # Create the prompt exactly as done in the BASE model
             prompt = f"{system_message}\n\n{query_text}"
             
-            # Generate response using Gemini
             response = self.client.models.generate_content(
                 model=self.model_name,
                 contents=[prompt, image]
@@ -89,8 +104,6 @@ class GeminiInference:
             
             prediction = response.text.strip()
             
-            # Apply the EXACT same post-processing as BASE models
-            # Clean up prediction text (from finetuning_pipeline/pipeline.py)
             if prediction.startswith("assistant\n\n"):
                 prediction = prediction[len("assistant\n\n"):]
             if prediction.startswith("assistant\n"):
@@ -164,7 +177,7 @@ class GeminiInference:
             
             for sample in tqdm(batch_data, desc=f"Predicting {batch_file}", leave=False):
                 prediction = self.predict(sample["query_text"], sample["image_path"])
-                time.sleep(1)
+                # time.sleep(1)
                 
                 results.append({
                     "encounter_id": sample.get("encounter_id", sample.get("id", "")),
@@ -197,7 +210,6 @@ class GeminiInference:
         Aggregate predictions for each encounter and question ID.
         Uses the EXACT same aggregation logic as the BASE models.
         """
-        # Import aggregation logic from finetuning pipeline
         from collections import Counter
         import ast
         import random
@@ -294,6 +306,25 @@ class GeminiInference:
         aggregated_df = pd.DataFrame(aggregated_results)
         return aggregated_df
     
+    def safe_convert_options(self, options):
+        """Safely convert options to list format."""
+        if isinstance(options, list):
+            return options
+        elif isinstance(options, str):
+            try:
+                import ast
+                parsed = ast.literal_eval(options)
+                if isinstance(parsed, list):
+                    return parsed
+            except:
+                pass
+            for delimiter in ['\n', ';', '|']:
+                if delimiter in options:
+                    return [opt.strip() for opt in options.split(delimiter) if opt.strip()]
+            return [options]
+        else:
+            return []
+    
     def format_predictions_for_evaluation(self, aggregated_df, output_file):
         """Format predictions for official evaluation using EXACT same logic as BASE models."""
         QIDS = [
@@ -334,10 +365,8 @@ class GeminiInference:
                 if base_qid not in qid_variants:
                     continue
                 
-                # Use safe_convert_options from data_preprocessor
-                from data_preprocessor import DataPreprocessor
-                preprocessor = DataPreprocessor(None)
-                options = preprocessor.safe_convert_options(row.get('options_en', []))
+                # Use safe_convert_options
+                options = self.safe_convert_options(row.get('options_en', []))
                 
                 not_mentioned_index = None
                 for i, opt in enumerate(options):
@@ -414,63 +443,63 @@ def main():
     print("Gemini 2.5 Flash Inference on Validation Dataset")
     print("=" * 60)
     
-    # Initialize configuration
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    config = Config(
-        model_name="Qwen2-VL-2B-Instruct",  # Model doesn't matter for data paths
-        base_dir=base_dir,
-        output_dir=os.path.join(base_dir, "outputs"),
-        setup_environment=False,
-        validate_paths=True
-    )
+    output_dir = os.path.join(base_dir, "outputs")
     
-    # Check if validation dataset exists
-    val_dataset_path = os.path.join(config.OUTPUT_DIR, "val_dataset.csv")
+    processed_val_data_fixed = os.path.join(output_dir, "processed_val_fixed")
+    processed_val_data_original = os.path.join(output_dir, "processed_val")
+    
+    if os.path.exists(processed_val_data_fixed):
+        processed_val_data_dir = processed_val_data_fixed
+        print(f"Using fixed validation data from: {processed_val_data_dir}")
+    else:
+        processed_val_data_dir = processed_val_data_original
+        print(f"Using original validation data from: {processed_val_data_dir}")
+        print("WARNING: Image paths may not be correct for your system.")
+        print("Run fix_image_paths.py to fix the paths.")
+    
+    val_dataset_path = os.path.join(output_dir, "val_dataset.csv")
     if not os.path.exists(val_dataset_path):
-        print("Validation dataset not found. Please run generate_val_dataset.py first.")
+        print(f"Validation dataset not found at: {val_dataset_path}")
+        print("Please run generate_val_dataset.py first.")
         return 1
     
-    # Check if processed validation data exists
-    if not os.path.exists(config.PROCESSED_VAL_DATA_DIR):
-        print("Processed validation data not found. Please run generate_val_dataset.py first.")
+    if not os.path.exists(processed_val_data_dir):
+        print(f"Processed validation data not found at: {processed_val_data_dir}")
+        print("Please run generate_val_dataset.py first.")
         return 1
     
-    # Load validation dataset for aggregation
     print("Loading validation dataset...")
     validation_df = pd.read_csv(val_dataset_path)
     print(f"Loaded validation dataset with {len(validation_df)} entries")
     
-    # Initialize Gemini inference
     print("Initializing Gemini inference...")
     gemini = GeminiInference()
     
-    # Run inference
     print("Running Gemini inference on validation data...")
     timestamp = datetime.datetime.now().strftime('%Y%m%d_%H%M%S')
-    predictions_file = os.path.join(config.OUTPUT_DIR, f"gemini_val_predictions_{timestamp}.csv")
+    predictions_file = os.path.join(output_dir, f"gemini_val_predictions_{timestamp}.csv")
     
     predictions_df = gemini.batch_predict(
-        processed_data_dir=config.PROCESSED_VAL_DATA_DIR,
+        processed_data_dir=processed_val_data_dir,
         output_file=predictions_file,
-        max_samples=None  # Process all samples
+        max_samples=None
     )
     
     if predictions_df.empty:
         print("No predictions generated. Exiting.")
         return 1
     
-    # Aggregate predictions
     print("Aggregating predictions...")
     aggregated_df = gemini.aggregate_predictions(predictions_df, validation_df)
     
-    aggregated_file = os.path.join(config.OUTPUT_DIR, f"gemini_val_aggregated_{timestamp}.csv")
+    aggregated_file = os.path.join(output_dir, f"gemini_val_aggregated_{timestamp}.csv")
     aggregated_df.to_csv(aggregated_file, index=False)
     print(f"Aggregated predictions saved to: {aggregated_file}")
     
-    # Format for evaluation - EXACT same naming as finetuning pipeline
     print("Formatting predictions for evaluation...")
     formatted_file = os.path.join(
-        config.OUTPUT_DIR,
+        output_dir,
         f"val_data_cvqa_sys_gemini-2.5-flash_{timestamp}.json"
     )
     formatted_predictions = gemini.format_predictions_for_evaluation(aggregated_df, formatted_file)
