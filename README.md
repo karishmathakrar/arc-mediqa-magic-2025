@@ -16,6 +16,7 @@ mediqa-magic-v2/
 
 ## Setup
 
+
 1. Clone the repository and navigate to the directory (will be made publicly available after May 30th):
 ```bash
 git clone https://github.com/yourusername/mediqa-magic-v2.git
