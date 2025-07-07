@@ -1,4 +1,4 @@
-# MEDIQA-Magic 2025: Medical Image Question Answering Pipeline
+# MEDIQA-MAGIC 2025: Medical Image Question Answering Pipeline
 ## Applied Research Competitions at Georgia Tech
 
 A comprehensive medical image analysis pipeline for dermatological question answering using multi-modal large language models, featuring fine-tuning, reasoning layers, and agentic RAG systems.
@@ -459,4 +459,4 @@ For questions and support:
 
 ## 🏆 Competition Results
 
-This pipeline was developed for the MEDIQA 2025 competition, focusing on dermatological image analysis and medical question answering. The modular design allows for easy experimentation with different model combinations and reasoning strategies.
+This pipeline was developed for the MEDIQA-MAGIC 2025 competition, focusing on dermatological image analysis and medical question answering. The modular design allows for easy experimentation with different model combinations and reasoning strategies.
