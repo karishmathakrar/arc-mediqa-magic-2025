@@ -9,11 +9,8 @@ for medical image analysis with structured reasoning.
 import os
 import sys
 
-
-base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-print(base_dir)
-
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(base_dir)
 print(f"Base directory: {base_dir}")
 print(f"Python path: {sys.path[-1]}")
 

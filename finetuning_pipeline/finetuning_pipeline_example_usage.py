@@ -9,12 +9,8 @@ that can now be easily imported and used in other projects.
 import os
 import sys
 
-base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-# Add latest_code/ to sys.path
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-print(sys.path)
-
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(base_dir)
 # Example 1: Basic usage with default settings
 def example_basic_usage():
     """Example of basic pipeline usage with default settings."""
@@ -403,7 +399,7 @@ def example_configuration_validation():
     print("\n=== Example 10: Configuration Validation ===")
     
     try:
-        from latest_code.finetuning_pipeline.pipeline import Config
+        from finetuning_pipeline.pipeline import Config
         
         # Test valid configuration
         print("Testing valid configuration...")
@@ -477,7 +473,7 @@ def main():
     print("\n" + "=" * 60)
     print("All examples completed!")
     print("\nQuick Start Guide:")
-    print("1. from latest_code.finetuning_pipeline import FineTuningPipeline")
+    print("1. from finetuning_pipeline import FineTuningPipeline")
     print("2. pipeline = FineTuningPipeline(base_dir='/path/to/data')")
     print("3. train_df, val_df = pipeline.prepare_data()")
     print("4. trainer = pipeline.train()")
