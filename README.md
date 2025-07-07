@@ -24,8 +24,6 @@ mediqa-magic-v2/
 │       ├── run_segandcvqa_scoring.py  # Combined scoring
 │       └── score_cvqa.py              # CVQA scoring utilities
 ├── 📁 Standalone Scripts
-│   ├── gemini_inference.py            # Gemini API inference with backoff
-│   ├── generate_val_dataset.py        # Validation dataset generator
 │   ├── data_preprocessor.py           # Data preprocessing utilities
 │   ├── evaluation_script.py           # Evaluation utilities
 │   └── submission_utility.py          # Submission formatting
@@ -69,12 +67,7 @@ GEMINI_API_KEY=your_gemini_api_key_here  # Alternative key name
 
 ### Basic Usage
 
-1. **Generate validation dataset:**
-```bash
-python generate_val_dataset.py
-```
-
-2. **Run fine-tuning pipeline:**
+1. **Run fine-tuning pipeline:**
 ```python
 from finetuning_pipeline.pipeline import FineTuningPipeline
 
@@ -84,9 +77,13 @@ trainer = pipeline.train()
 predictions = pipeline.run_inference()
 ```
 
-3. **Run Gemini inference:**
-```bash
-python gemini_inference.py --processed-data-dir ./outputs/processed_val
+2. **Run reasoning pipeline:**
+```python
+from reasoning_pipeline import ReasoningConfig, ReasoningPipeline
+
+config = ReasoningConfig(use_finetuning=True, base_dir="./")
+pipeline = ReasoningPipeline(config)
+results = pipeline.process_all_encounters()
 ```
 
 ## 📋 Core Components
@@ -171,42 +168,6 @@ results = pipeline.process_all_encounters()
 - Medical knowledge base management
 
 ## 🛠️ Standalone Scripts
-
-### `gemini_inference.py`
-**Purpose:** Direct Gemini API inference with robust error handling
-
-**Key Features:**
-- Exponential backoff retry logic for API rate limits
-- Configurable processed data directory paths
-- Exact BASE model prompting compatibility
-- Batch processing with progress tracking
-- Automatic image path resolution
-
-**Usage:**
-```bash
-# Default behavior
-python gemini_inference.py
-
-# Custom processed data directory
-python gemini_inference.py --processed-data-dir /path/to/processed_val
-
-# Custom output directory
-python gemini_inference.py --output-dir /path/to/outputs
-```
-
-### `generate_val_dataset.py`
-**Purpose:** Generate validation dataset from competition data
-
-**Key Features:**
-- Processes 2025 competition validation data
-- Creates structured CSV with encounter and question mapping
-- Handles image path resolution
-- Generates processed batch files for inference
-
-**Usage:**
-```bash
-python generate_val_dataset.py
-```
 
 ### `data_preprocessor.py`
 **Purpose:** Data preprocessing utilities and transformations
@@ -457,14 +418,14 @@ seaborn>=0.13.2
    - Enable CPU offloading for large models
 
 2. **Image Path Errors:**
-   - Run `generate_val_dataset.py` to fix paths
+   - Use the data preprocessing utilities in `data_preprocessor.py`
    - Check image directory structure matches expected format
-   - Use `--processed-data-dir` argument to specify custom paths
+   - Verify dataset paths in configuration
 
 3. **API Rate Limits:**
-   - Gemini inference includes exponential backoff retry
    - Monitor API usage and quotas in Google Cloud Console
    - Consider adding delays between requests for large batches
+   - Use the reasoning pipeline's built-in retry mechanisms
 
 4. **Model Loading Issues:**
    - Verify HuggingFace token permissions for gated models
