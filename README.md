@@ -33,8 +33,6 @@ arc-mediqa-magic-2025/
 │   │   ├── train/                     # Training data and images
 │   │   ├── valid/                     # Validation data and images
 │   │   └── test/                      # Test data and images
-│   ├── 2024_dataset/                  # Previous year dataset
-│   └── outputs/                       # Generated outputs and models
 └── 📁 Configuration
     ├── requirements.txt               # Python dependencies
     ├── .env                          # Environment variables
